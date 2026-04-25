@@ -28,20 +28,32 @@
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/docs/Web/CSS)
 
-### Backend — JVM
+### AI / ML — `intelligence-service` (the brain)
+
+[![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![Vertex AI](https://img.shields.io/badge/Vertex%20AI-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
+[![Agent Loop](https://img.shields.io/badge/Pattern-Agent%20%2B%20Tool%20Use-8a2be2?style=flat-square)](#)
+[![LLM-as-Judge](https://img.shields.io/badge/Pattern-LLM--as--Judge-8a2be2?style=flat-square)](#)
+[![text-embedding-004](https://img.shields.io/badge/Embeddings-text--embedding--004-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/gemini-api/docs/embeddings)
+[![sentence-transformers](https://img.shields.io/badge/sentence--transformers-fallback-FFB000?style=flat-square&logo=huggingface&logoColor=black)](https://www.sbert.net/)
+[![pgvector](https://img.shields.io/badge/pgvector-vector%20search-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
+[![Prophet](https://img.shields.io/badge/Prophet-cash--flow%20forecast-1F77B4?style=flat-square&logo=meta&logoColor=white)](https://facebook.github.io/prophet/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-fraud%20model%20(M5)-EB6F0E?style=flat-square)](https://xgboost.readthedocs.io/)
+[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-traces-425CC7?style=flat-square&logo=opentelemetry&logoColor=white)](https://opentelemetry.io/)
+
+### Backend — Python (AI service)
+
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![uv](https://img.shields.io/badge/uv-deps-DE5FE9?style=flat-square&logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
+
+### Backend — JVM (streaming spine + BFF)
 
 [![Java](https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Spring Kafka](https://img.shields.io/badge/Spring%20Kafka-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/projects/spring-kafka)
 [![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white)](https://gradle.org/)
-
-### Backend — Python AI
-
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-[![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
-[![Vertex AI](https://img.shields.io/badge/Vertex%20AI-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 
 ### Data & Messaging
 
