@@ -1,0 +1,22 @@
+# MLflow — XGBoost / model experiment tracking. NOT enabled by default (M5 scope).
+# Pinned to v2.13.2 — image already present locally.
+# Enable by uncommenting `mlflow` in infra/local/docker-all-{up,down,status}.sh.
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.13.2
+    container_name: tresorai-mlflow
+    restart: unless-stopped
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - tresorai_mlflow_data:/mlflow
+
+volumes:
+  tresorai_mlflow_data:
+    name: tresorai_mlflow_data
