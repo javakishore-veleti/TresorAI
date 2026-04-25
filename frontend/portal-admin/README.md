@@ -52,5 +52,11 @@ Right-pane: **multiple accordions**, one per dataset/reference-data source the c
 - Restricted to `role=ADMIN` accounts via `api-gateway` IAM
 - Customer-portal users cannot reach these routes
 
+## Visual direction (ADR-0010)
+- **No black, no gray.** Same warm palette as `portal-customer` — admin is calmer/denser, not grayer.
+- Shares `tailwind.config.cjs`, design tokens, and headless primitives with the customer portal.
+- Dense tables and detail views still use sand borders (`#E8DCC4`) and bronze secondary text — never gray.
+- Custom favicon (variant of the customer mark with a subtle admin badge).
+
 ## Status
 Not scaffolded yet — see plan `T03b` in `TresorAI_Portfolio_Build_Plan.xlsx`.

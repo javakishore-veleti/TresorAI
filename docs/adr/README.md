@@ -13,3 +13,4 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0007](./0007-no-adhoc-downloads-install-discipline.md) | No ad-hoc downloads — professional install discipline | Accepted |
 | [0008](./0008-per-tool-local-infra-compose.md) | Per-tool local infra (one compose per tool) | Accepted |
 | [0009](./0009-conda-env-pinned-path.md) | Conda env at pinned project path | Accepted |
+| [0010](./0010-visual-design-direction.md) | Visual design direction — no black/gray, treasure palette | Proposed |

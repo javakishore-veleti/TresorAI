@@ -24,5 +24,14 @@
 - `/agent` — agent reasoning trace + CFO ask
 - `/flagged` — review flagged transactions (Hold / Release / Edit / Cancel)
 
+## Visual direction (ADR-0010)
+- **No black, no gray** anywhere. Warm palette only.
+- Primary: emerald (`#047857`); accent: champagne gold (`#D4A574`).
+- Backgrounds are warm pearl / cream — never `#FFFFFF` flat or gray.
+- First-class alert / toast / status-pill primitives (`<tai-alert>`, `<tai-toast>`, `<tai-status-pill>`).
+- Custom favicon pack (16/32/180/192/512) — emerald-and-gold "T" mark.
+- Hero imagery: recolored vector illustrations (undraw.co) matched to the palette. No stock photos.
+- Tooling: Tailwind CSS with shared `tailwind.config.cjs`; Angular CDK for headless primitives; **no** default Material theme.
+
 ## Status
-Not scaffolded yet — see plan `T03a` in `TresorAI_Portfolio_Build_Plan.xlsx`.
+Not scaffolded yet — see plan `T03` in `TresorAI_Portfolio_Build_Plan.xlsx`.
