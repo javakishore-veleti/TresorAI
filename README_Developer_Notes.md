@@ -80,9 +80,10 @@ npm run setup:initial:all
 ### One-command flow *(recommended)*
 
 ```bash
-# Brings up Docker infra AND every backend service / portal that has been scaffolded.
-# Today: only Docker comes up (services not scaffolded yet). The same command grows
-# automatically as T02 / T03 / T03b / T04 / T05 / T06 land — no script changes needed.
+# Auto-syncs npm deps (root + portals), brings up Docker, then starts every
+# backend service / portal that has been scaffolded. The auto-`npm install`
+# step means you do NOT need to remember to run npm install when teammates
+# add or change deps — dev:up handles it. Fast (~5s) when nothing changed.
 npm run dev:up
 
 # Activate conda env in your terminal (separate step — shell state cannot
@@ -92,6 +93,15 @@ source ./scripts/conda-activate.sh
 ```
 
 `dev:up` runs all services in **one terminal** with colour-coded prefixes via [`concurrently`](https://www.npmjs.com/package/concurrently). Ctrl+C kills them all.
+
+**`dev:up` step-by-step (what runs automatically):**
+
+| Step | What |
+|---|---|
+| 0 | `npm install` at root + each portal — picks up teammate dep changes |
+| 1 | `npm run infra:up` — Postgres+pgvector, Redis, Kafka |
+| 2 | Spawns scaffolded backend services (intelligence-service, api-gateway, ingest-service) |
+| 3 | Spawns scaffolded portals (portal-customer :4200, portal-admin :4201) |
 
 ### Step-by-step flow *(if you want to start things selectively)*
 
@@ -220,8 +230,9 @@ docker volume rm tresorai_pg_data tresorai_redis_data tresorai_kafka_data
 | `npm run infra:up` | Start Docker stacks (Postgres+pgvector, Redis, Kafka) |
 | `npm run infra:status` | `docker compose ps` for each active stack |
 | `npm run infra:down` | Stop Docker stacks |
-| `npm run dev:up` | **One-shot dev start** — Docker + every scaffolded service + both portals, multiplexed via `concurrently`. Ctrl+C kills all. |
-| `npm run dev:down` | Stop Docker stacks (run after Ctrl+C in `dev:up`) |
+| `npm run dev:up` | **One-shot dev start** — auto-`npm install` (root + portals), Docker, every scaffolded service + both portals, multiplexed via `concurrently`. Ctrl+C kills all. |
+| `npm run dev:down` | **Hard teardown** — stops Docker, removes named volumes + per-project networks (wipes Postgres / Kafka / Redis data) |
+| `npm run setup:portals:install` | Install npm deps for both portals in parallel (rarely needed — `dev:up` does this automatically) |
 | `npm run generate:favicons` | Regenerate favicon pack from `design-system/brand/*.svg` |
 | `npm run setup:initial:downloads` | Placeholder — real Initial Downloads runs from `portal-admin` (T22b) |
 

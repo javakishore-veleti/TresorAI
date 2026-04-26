@@ -1,0 +1,45 @@
+<div class="min-h-screen flex flex-col">
+  <!-- Top nav -->
+  <header class="bg-surface-elevated border-b border-sand">
+    <div class="px-6 py-3 flex items-center gap-8">
+      <a routerLink="/administration" class="flex items-center gap-3 group">
+        <img
+          src="assets/favicons/icon-192.png"
+          alt="TrésorAI Admin"
+          class="size-8 rounded-tai-sm shadow-tai-card"
+        />
+        <span class="font-semibold text-base text-forest tracking-tight">
+          Trésor<span class="text-brand-emerald-700">AI</span>
+          <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-tai-sm bg-mauve text-surface-pearl text-[10px] font-mono uppercase tracking-wide">admin</span>
+        </span>
+      </a>
+
+      <nav class="flex items-center gap-1 ml-2 flex-1">
+        @for (item of topNav; track item.path) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="bg-surface-cream text-forest"
+            #rla="routerLinkActive"
+            class="px-3 py-2 rounded-tai-sm text-sm font-medium transition-colors"
+            [class.text-bronze]="!rla.isActive"
+            [class.hover:text-forest]="!rla.isActive"
+            [class.hover:bg-surface-cream]="!rla.isActive"
+          >
+            {{ item.label }}
+          </a>
+        }
+      </nav>
+
+      <div class="flex items-center gap-3 text-sm text-bronze">
+        <span class="font-mono text-xs">tenant: <span class="text-forest">acme-smb-prod</span></span>
+        <span class="size-8 rounded-full bg-mauve text-surface-pearl flex items-center justify-center font-semibold text-xs">OP</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 flex">
+    <router-outlet />
+  </main>
+
+  <tai-toast-host />
+</div>

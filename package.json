@@ -12,7 +12,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "setup:initial:all": "npm run setup:conda:create && npm run setup:python:deps && npm run infra:up && npm run generate:favicons && npm run setup:initial:downloads",
+    "setup:initial:all": "npm run setup:conda:create && npm run setup:python:deps && npm run setup:portals:install && npm run infra:up && npm run generate:favicons && npm run setup:initial:downloads",
+
+    "setup:portals:install": "bash scripts/install-portals.sh",
 
     "setup:conda:create": "bash scripts/conda-create.sh",
     "setup:conda:remove": "bash scripts/conda-remove.sh",

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Bring up the full local TrésorAI dev environment in one command:
+#   0. Sync npm deps (root + each portal) — picks up package.json changes from teammates
 #   1. Docker infra stacks (postgres+pgvector, redis, kafka)
 #   2. Every backend service that has been scaffolded
 #   3. Both portals if they have been scaffolded
@@ -15,6 +16,25 @@ cd "$REPO_ROOT"
 
 CONDA_ENV="$HOME/runtime_data/python_venvs/TresorAI"
 
+# ---------- Step 0: keep npm deps in sync ----------
+# Runs in every dev:up so package.json changes from other teammates are picked up
+# without anyone needing to remember `npm install`. Fast (~5s) when nothing changed.
+echo "==> Step 0: Sync npm deps"
+
+if [[ -f package.json ]]; then
+  echo "  - root"
+  npm install --no-audit --no-fund --silent
+fi
+
+for portal in frontend/portal-customer frontend/portal-admin; do
+  if [[ -f "$portal/package.json" ]]; then
+    echo "  - $portal"
+    (cd "$portal" && npm install --no-audit --no-fund --silent)
+  fi
+done
+
+# ---------- Step 1: Docker infra ----------
+echo
 echo "==> Step 1: Docker infra"
 npm run infra:up
 
@@ -48,14 +68,14 @@ if [[ -f backend/ingest-service/pom.xml ]]; then
   COLORS+=("magenta")
 fi
 
-# portal-customer (Angular)
+# portal-customer (Angular) — node_modules guaranteed by Step 0 if package.json exists
 if [[ -f frontend/portal-customer/package.json ]]; then
   COMMANDS+=("cd frontend/portal-customer && npm run start")
   NAMES+=("customer")
   COLORS+=("green")
 fi
 
-# portal-admin (Angular)
+# portal-admin (Angular) — node_modules guaranteed by Step 0 if package.json exists
 if [[ -f frontend/portal-admin/package.json ]]; then
   COMMANDS+=("cd frontend/portal-admin && npm run start")
   NAMES+=("admin")
@@ -68,7 +88,7 @@ if [[ ${#COMMANDS[@]} -eq 0 ]]; then
   echo "==> Step 2-3: nothing to start yet"
   echo
   echo "    Docker infra is up, but no backend services or portals have been scaffolded."
-  echo "    Land T02 / T03 / T03b / T04 / T05 / T06 to enable parallel start here."
+  echo "    Land T02 / T04 / T05 / T06 to enable parallel start here."
   echo
   echo "    Health checks you CAN run today:"
   echo "      docker exec -it tresorai-redis    redis-cli ping"

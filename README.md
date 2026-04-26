@@ -2,6 +2,8 @@
 
 > **Stop AP fraud before it ships, and know your cash 90 days out.**
 > An agentic treasury & payments copilot for small and mid-sized businesses.
+>
+> *AP = Accounts Payable* — the function that pays a company's outbound bills (invoices, payroll, rent, vendor payments). "AP fraud" = fraudulent, duplicate, or misdirected outbound payments before they leave the company's bank account.
 
 [![License: MIT](https://img.shields.io/github/license/javakishore-veleti/TresorAI?style=flat-square)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/javakishore-veleti/TresorAI?style=flat-square)](https://github.com/javakishore-veleti/TresorAI/commits)

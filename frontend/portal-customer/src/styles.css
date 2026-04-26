@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Shared TrésorAI design tokens (single source of truth). */
+@import "../../../design-system/tokens.css";
+
+/* Inter / JetBrains Mono fonts (matches the sans/mono tokens). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--tai-surface-pearl);
+  color: var(--tai-forest);
+  font-family: var(--tai-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(212, 165, 116, 0.35); /* gold-500 @ 35% */
+  color: var(--tai-forest);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--tai-brand-emerald-500);
+  outline-offset: 2px;
+  border-radius: var(--tai-radius-sm);
+}

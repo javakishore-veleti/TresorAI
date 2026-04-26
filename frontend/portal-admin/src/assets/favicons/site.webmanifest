@@ -1,0 +1,20 @@
+{
+  "name": "TrésorAI Admin",
+  "short_name": "TresorAdmin",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#047857",
+  "background_color": "#FAFAF6",
+  "display": "standalone",
+  "start_url": "/"
+}

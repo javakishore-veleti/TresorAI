@@ -1,62 +1,27 @@
-# portal-admin
+# PortalAdmin
 
-> **TrésorAI admin portal** — the SPA used by TrésorAI ops / platform engineers and by enterprise client admins during install + ongoing operation.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
 
-## Stack
-- Angular 17+ (standalone components, signals)
-- TypeScript 5.x
-- Tailwind or Angular Material (TBD at scaffold)
+## Development server
 
-## Local
-- Port: **4201**
-- Build: `npm` + Angular CLI
-- Dockerfile: multi-stage (build → nginx)
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
-## Deploy
-- Target: **Google Cloud Run** (separate service from `portal-customer`)
-- Workflow: `.github/workflows/portal-admin.yml` (path-filtered)
+## Code scaffolding
 
-## Information Architecture
+Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
-Three-level navigation: **top nav → left nav → content area**.
+## Build
 
-```
-┌─ Top nav ─────────────────────────────────────────────┐
-│  Administration  │  Tenants  │  Models  │  System     │
-└──┬────────────────────────────────────────────────────┘
-   ▼
-┌──── Left nav ────┐  ┌─── Content area ──────────────┐
-│  Data Management │  │                               │
-│  ├─ Initial      │  │  (page-specific, e.g.         │
-│  │   Downloads ◀─┼──┼─  accordions, dashboards)     │
-│  ├─ ...          │  │                               │
-│  └─ ...          │  │                               │
-│  Users & Roles   │  │                               │
-│  Agent Config    │  │                               │
-│  ...             │  │                               │
-└──────────────────┘  └───────────────────────────────┘
-```
+Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-### Top nav (planned)
-- **Administration** — install + ops machinery (Data Management, Users & Roles, Agent Config, …)
-- **Tenants** — multi-tenant customer management
-- **Models** — model performance dashboards (false-positive rate, latency, decision audit)
-- **System** — health, OpenTelemetry traces, Cloud Run service status, feature flags
+## Running unit tests
 
-### Administration → Data Management → Initial Downloads
-Right-pane: **multiple accordions**, one per dataset/reference-data source the client install needs (e.g. supplier reference list, IBAN typosquat lookup, country/sanctions lists, demo seed data). Each accordion configures and triggers its own download/seed step.
+Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-> **No manual or ad-hoc downloads anywhere in this codebase.** Every install operation is parameterized, idempotent, and run from this UI (or its CLI counterpart) so a single TrésorAI install can be reproduced verbatim at any client site.
+## Running end-to-end tests
 
-## Authorization
-- Restricted to `role=ADMIN` accounts via `api-gateway` IAM
-- Customer-portal users cannot reach these routes
+Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
-## Visual direction (ADR-0010)
-- **No black, no gray.** Same warm palette as `portal-customer` — admin is calmer/denser, not grayer.
-- Shares `tailwind.config.cjs`, design tokens, and headless primitives with the customer portal.
-- Dense tables and detail views still use sand borders (`#E8DCC4`) and bronze secondary text — never gray.
-- Custom favicon (variant of the customer mark with a subtle admin badge).
+## Further help
 
-## Status
-Not scaffolded yet — see plan `T03b` in `TresorAI_Portfolio_Build_Plan.xlsx`.
+To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
