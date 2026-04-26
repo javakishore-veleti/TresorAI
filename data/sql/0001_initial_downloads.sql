@@ -84,11 +84,11 @@ CREATE TRIGGER trg_idd_updated_at
 INSERT INTO initial_downloads_datasets
   (key,                  title,                                       subtitle,                                                       required, approx_size_bytes,         airflow_dag_id,                target_table)
 VALUES
-  ('tx_synthetic_v1',    'Synthetic transactions (~5 GB)',           'Demo replay stream + classical-ML training corpus',            true,     5368709120,                'dag_demo_seed_load',          'public.transactions'),
-  ('ofac_sanctions',     'OFAC + EU consolidated sanctions',          'Daily-refreshed sanctions lists for the rule layer',           true,       20971520,                'dag_ofac_sdn_refresh',        'public.sanctions'),
-  ('iban_typosquat',     'IBAN typosquat lookup',                     'Curated IBAN lookalike patterns + supplier domains',           true,         524288,                'dag_iban_typosquat_load',     'public.iban_typosquat'),
-  ('paysim_extended',    'PaySim extended fraud dataset (~5 GB)',    'Real-shape labelled fraud for XGBoost / Isolation Forest',     true,     5368709120,                'dag_paysim_extended_load',    'public.tx_paysim'),
-  ('yelp_supplier',      'Yelp supplier corpus (~10 GB)',            'Embedding fine-tune corpus for Deep Learning track',           false,    10737418240,                'dag_yelp_supplier_corpus_load','public.suppliers_yelp'),
-  ('iso_country_codes',  'ISO 3166 country codes',                    'Yearly-refresh reference data',                                 true,          10240,                'dag_iso_country_codes_load',  'public.country_codes'),
-  ('eval_set_curated',   'Agent quality eval set',                    'Hand-curated (tx, expected_decision, citations) cases',        true,         204800,                'dag_agent_eval_suite',        'public.agent_eval_cases')
+  ('tx_synthetic_v1',    'Synthetic transactions (~5 GB)',           'Demo replay stream + classical-ML training corpus',            true,     5368709120,                'setup_demo_seed',          'public.transactions'),
+  ('ofac_sanctions',     'OFAC + EU consolidated sanctions',          'Daily-refreshed sanctions lists for the rule layer',           true,       20971520,                'setup_ofac_eu_sanctions',        'public.sanctions'),
+  ('iban_typosquat',     'IBAN typosquat lookup',                     'Curated IBAN lookalike patterns + supplier domains',           true,         524288,                'setup_iban_typosquat',     'public.iban_typosquat'),
+  ('paysim_extended',    'PaySim extended fraud dataset (~5 GB)',    'Real-shape labelled fraud for XGBoost / Isolation Forest',     true,     5368709120,                'setup_paysim_extended',    'public.tx_paysim'),
+  ('yelp_supplier',      'Yelp supplier corpus (~10 GB)',            'Embedding fine-tune corpus for Deep Learning track',           false,    10737418240,                'setup_yelp_supplier_corpus','public.suppliers_yelp'),
+  ('iso_country_codes',  'ISO 3166 country codes',                    'Yearly-refresh reference data',                                 true,          10240,                'setup_iso_country_codes',  'public.country_codes'),
+  ('eval_set_curated',   'Agent quality eval set',                    'Hand-curated (tx, expected_decision, citations) cases',        true,         204800,                'setup_agent_eval',        'public.agent_eval_cases')
 ON CONFLICT (key) DO NOTHING;
