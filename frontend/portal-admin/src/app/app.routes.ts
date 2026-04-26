@@ -54,9 +54,8 @@ export const routes: Routes = [
   {
     path: 'system',
     loadComponent: () =>
-      import('./pages/placeholder.page').then(m => m.PlaceholderPageComponent),
-    data: { heading: 'System', subtitle: 'Health, OpenTelemetry traces, Cloud Run status, feature flags' },
-    title: 'System · TrésorAI Admin',
+      import('./pages/system-health.page').then(m => m.SystemHealthPageComponent),
+    title: 'System Health · TrésorAI Admin',
   },
   { path: '**', redirectTo: 'administration' },
 ];

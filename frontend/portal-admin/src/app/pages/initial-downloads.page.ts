@@ -1,28 +1,65 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { interval, Subscription } from 'rxjs';
+
 import {
   TaiAccordionComponent,
   TaiAlertComponent,
   TaiStatusPillComponent,
   TaiToastService,
 } from '../primitives';
+import { PendingSetupService } from '../shared/pending-setup.service';
 
-interface Dataset {
+interface DatasetEntry {
   key: string;
   title: string;
-  subtitle: string;
-  source: string;
-  target: string;
-  rows: number | null;
-  lastRunAt: string | null;
-  status: 'never' | 'success' | 'pending' | 'flagged';
-  initialOpen: boolean;
+  subtitle: string | null;
+  required: boolean;
+  approx_size_bytes: number;
+  airflow_dag_id: string;
+  target_table: string | null;
+  current_status: string;
+  rows_loaded: number | null;
+  first_loaded_at: string | null;
+  last_run_at: string | null;
+  last_run_id: string | null;
+  last_run_progress: number | null;
 }
+
+interface RunRecord {
+  id: string;
+  dataset_key: string;
+  airflow_dag_id: string;
+  status: string;
+  started_at: string;
+  finished_at: string | null;
+  duration_ms: number | null;
+  forced: boolean;
+  rows_loaded: number | null;
+}
+
+const ADMIN_API = 'http://localhost:8091';
+
+const PILL_BY_STATUS: Record<string, 'released' | 'pending' | 'held' | 'flagged' | 'info'> = {
+  never_loaded:    'flagged',
+  missing_files:   'flagged',
+  stale:           'pending',
+  running:         'pending',
+  queued:          'pending',
+  already_present: 'released',
+  success:         'released',
+  failed:          'flagged',
+};
 
 @Component({
   selector: 'tai-initial-downloads-page',
   standalone: true,
-  imports: [FormsModule, TaiAccordionComponent, TaiAlertComponent, TaiStatusPillComponent],
+  imports: [
+    DatePipe, DecimalPipe, FormsModule,
+    TaiAccordionComponent, TaiAlertComponent, TaiStatusPillComponent,
+  ],
   host: { class: 'block w-full max-w-5xl' },
   template: `
     <header class="mb-6">
@@ -32,67 +69,106 @@ interface Dataset {
       <h1 class="mt-1 text-3xl font-semibold text-forest tracking-tight">Initial Downloads</h1>
       <p class="mt-1 text-bronze max-w-3xl">
         Parameterized, idempotent, audited install of every reference dataset TrésorAI depends on.
-        Run these once per client install. Re-running is a no-op when the source hash matches.
+        Run these once per client install — re-running is a no-op when the source hash matches.
       </p>
     </header>
 
-    <tai-alert variant="info" class="mb-6 block">
-      <strong class="text-forest">No ad-hoc downloads</strong> — every reference data load runs from this page
-      or its CLI counterpart. See <a class="text-brand-emerald-700 underline underline-offset-2"
-        href="https://github.com/javakishore-veleti/TresorAI/blob/main/docs/adr/0007-no-adhoc-downloads-install-discipline.md"
-        target="_blank" rel="noopener">ADR-0007</a>.
-    </tai-alert>
+    @if (errorMsg()) {
+      <tai-alert variant="error" class="mb-6 block">
+        Could not reach admin-api at {{ adminApiUrl }}: {{ errorMsg() }}.
+        <span class="text-bronze">The list below is the static catalog; Run download is disabled.</span>
+      </tai-alert>
+    } @else {
+      <tai-alert variant="info" class="mb-6 block">
+        <strong class="text-forest">No ad-hoc downloads</strong> — every dataset load runs from this page or its CLI counterpart.
+        Status streams live from <code class="font-mono text-xs text-mauve">{{ adminApiUrl }}</code>.
+      </tai-alert>
+    }
 
     <div class="space-y-4">
-      @for (d of datasets; track d.key) {
-        <tai-accordion [title]="d.title" [subtitle]="d.subtitle" [initialOpen]="d.initialOpen">
+      @for (d of datasets(); track d.key) {
+        <tai-accordion
+          [title]="d.title + (d.required ? '' : '  ·  optional')"
+          [subtitle]="d.subtitle ?? ''"
+          [initialOpen]="d.current_status === 'running' || d.current_status === 'never_loaded'"
+        >
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <label class="block">
-                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1.5">Source URL</span>
-                <input
-                  type="text"
-                  [(ngModel)]="d.source"
-                  class="w-full rounded-tai-sm border border-sand bg-surface-pearl px-3 py-2 text-sm text-forest focus:border-brand-emerald-500 focus:ring-0"
-                />
-              </label>
-              <label class="block">
-                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1.5">Target table</span>
-                <input
-                  type="text"
-                  [(ngModel)]="d.target"
-                  class="w-full rounded-tai-sm border border-sand bg-surface-pearl px-3 py-2 text-sm font-mono text-forest focus:border-brand-emerald-500 focus:ring-0"
-                />
-              </label>
+            <!-- Left: source / target -->
+            <div class="space-y-3">
+              <div>
+                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">DAG ID</span>
+                <code class="text-sm font-mono text-forest">{{ d.airflow_dag_id }}</code>
+              </div>
+              <div>
+                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">Target table</span>
+                <code class="text-sm font-mono text-forest">{{ d.target_table }}</code>
+              </div>
+              <div>
+                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">Approx. size</span>
+                <span class="text-sm text-forest">{{ formatBytes(d.approx_size_bytes) }}</span>
+              </div>
             </div>
+
+            <!-- Right: status + actions -->
             <div class="space-y-3">
               <div class="rounded-tai-sm bg-surface-cream border border-sand p-4">
-                <div class="text-xs uppercase tracking-wide text-bronze font-semibold mb-2">Last run</div>
-                @if (d.lastRunAt) {
-                  <div class="flex items-center gap-3">
-                    <tai-status-pill [status]="d.status === 'success' ? 'released' : d.status === 'pending' ? 'pending' : 'flagged'">
-                      {{ d.status }}
-                    </tai-status-pill>
-                    <div>
-                      <div class="text-sm text-forest">{{ d.lastRunAt }}</div>
-                      <div class="text-xs text-bronze font-mono">{{ d.rows }} rows · sha-256 verified</div>
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="text-xs uppercase tracking-wide text-bronze font-semibold">Current status</span>
+                  <tai-status-pill [status]="pillFor(d.current_status)">
+                    {{ d.current_status }}
+                  </tai-status-pill>
+                </div>
+
+                @if (d.current_status === 'running' && d.last_run_progress !== null) {
+                  <div class="mt-2">
+                    <div class="flex items-center justify-between mb-1 text-xs text-bronze">
+                      <span>Downloading via Airflow</span>
+                      <span class="font-mono">{{ d.last_run_progress }}%</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-surface-pearl overflow-hidden border border-sand">
+                      <div class="h-full bg-brand-emerald-500 transition-all duration-300"
+                           [style.width.%]="d.last_run_progress ?? 0"></div>
                     </div>
                   </div>
+                } @else if (d.last_run_at) {
+                  <div class="text-sm text-forest">
+                    Last run: <span class="font-mono">{{ d.last_run_at | date:'medium' }}</span>
+                  </div>
+                  @if (d.rows_loaded !== null) {
+                    <div class="text-xs text-bronze font-mono">
+                      {{ d.rows_loaded | number }} rows · sha-256 verified
+                    </div>
+                  }
                 } @else {
                   <div class="text-sm text-bronze italic">Never run on this install.</div>
                 }
               </div>
+
               <div class="flex items-center gap-2">
                 <button
                   type="button"
-                  class="px-4 py-2 rounded-tai-sm text-sm font-medium border border-mauve text-forest hover:bg-surface-cream"
-                  (click)="dryRun(d)"
-                >Dry run</button>
-                <button
-                  type="button"
-                  class="px-4 py-2 rounded-tai-sm text-sm font-medium bg-brand-emerald-700 text-surface-pearl hover:bg-brand-emerald-500"
-                  (click)="run(d)"
-                >Run download</button>
+                  class="px-4 py-2 rounded-tai-sm text-sm font-semibold bg-brand-emerald-700 text-surface-pearl hover:bg-brand-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  [disabled]="d.current_status === 'running' || !!errorMsg()"
+                  (click)="run(d, false)"
+                >
+                  @if (d.current_status === 'running') {
+                    Running…
+                  } @else if (d.current_status === 'success' || d.current_status === 'already_present') {
+                    Run again (cached)
+                  } @else {
+                    Run download
+                  }
+                </button>
+                @if (d.current_status === 'success' || d.current_status === 'already_present') {
+                  <button
+                    type="button"
+                    class="px-4 py-2 rounded-tai-sm text-sm font-medium border border-coral text-forest hover:bg-coral-bg transition-colors"
+                    [disabled]="d.current_status === 'running' || !!errorMsg()"
+                    (click)="run(d, true)"
+                  >
+                    Re-download (force)
+                  </button>
+                }
               </div>
             </div>
           </div>
@@ -101,54 +177,84 @@ interface Dataset {
     </div>
 
     <footer class="mt-8 text-xs text-bronze font-mono">
-      Backend wires up at T22b (admin/initial-downloads UI) + T22c (api-gateway endpoints, audited).
+      Backend: admin-api on port 8091. Polling every {{ pollMs / 1000 }}s while any DAG is running.
     </footer>
   `,
 })
-export class InitialDownloadsPageComponent {
+export class InitialDownloadsPageComponent implements OnInit, OnDestroy {
+  private http = inject(HttpClient);
   private toast = inject(TaiToastService);
+  private pendingSvc = inject(PendingSetupService);
 
-  datasets: Dataset[] = [
-    {
-      key: 'suppliers',
-      title: 'Supplier reference list',
-      subtitle: 'Seed pgvector with the legit supplier corpus for embedding similarity matching',
-      source: 'gs://tresorai-reference/suppliers/v3.csv',
-      target: 'public.suppliers',
-      rows: 1840,
-      lastRunAt: '2026-04-23 09:14 UTC',
-      status: 'success',
-      initialOpen: true,
-    },
-    {
-      key: 'iban-typosquat',
-      title: 'IBAN typosquat lookup',
-      subtitle: 'Known-bad IBAN patterns and look-alike supplier domains',
-      source: 'gs://tresorai-reference/iban-typosquat/v7.json',
-      target: 'public.iban_typosquat',
-      rows: null,
-      lastRunAt: null,
-      status: 'never',
-      initialOpen: false,
-    },
-    {
-      key: 'demo-seed',
-      title: 'Demo seed data',
-      subtitle: '5000 synthetic transactions across 200 suppliers + 12 planted fraud patterns',
-      source: 'gs://tresorai-reference/demo-seed/v1.tar.gz',
-      target: 'public.transactions, public.suppliers',
-      rows: 5000,
-      lastRunAt: '2026-04-21 13:42 UTC',
-      status: 'success',
-      initialOpen: false,
-    },
-  ];
+  adminApiUrl = ADMIN_API;
+  pollMs = 1000;
 
-  dryRun(d: Dataset) {
-    this.toast.show(`Dry-run scheduled for ${d.title}`, 'info');
+  datasets = signal<DatasetEntry[]>([]);
+  errorMsg = signal<string | null>(null);
+
+  private pollSub?: Subscription;
+
+  ngOnInit(): void {
+    this.refresh();
+    this.pollSub = interval(this.pollMs).subscribe(() => {
+      const anyRunning = this.datasets().some(d => d.current_status === 'running');
+      if (anyRunning || this.datasets().length === 0) {
+        this.refresh();
+      }
+    });
   }
 
-  run(d: Dataset) {
-    this.toast.show(`Running ${d.title} → ${d.target}`, 'success');
+  ngOnDestroy(): void {
+    this.pollSub?.unsubscribe();
+  }
+
+  refresh(): void {
+    this.http.get<DatasetEntry[]>(`${ADMIN_API}/api/admin/initial-downloads/datasets`).subscribe({
+      next: rows => {
+        this.datasets.set(rows);
+        this.errorMsg.set(null);
+        this.pendingSvc.refresh();
+      },
+      error: err => {
+        this.errorMsg.set(err?.statusText || err?.message || 'connection refused');
+      },
+    });
+  }
+
+  run(d: DatasetEntry, force: boolean): void {
+    this.http
+      .post<{ run_id: string; status: string }>(
+        `${ADMIN_API}/api/admin/initial-downloads/${d.key}/run`,
+        { force, triggered_by: 'admin@local' },
+      )
+      .subscribe({
+        next: r => {
+          const variant =
+            r.status === 'already_present' ? 'success'
+            : r.status === 'queued'        ? 'info'
+            :                                'info';
+          this.toast.show(
+            r.status === 'already_present'
+              ? `${d.title} — already present (audit-only run, <1 s)`
+              : `${d.title} — queued via ${d.airflow_dag_id}`,
+            variant,
+          );
+          this.refresh();
+        },
+        error: err => {
+          this.toast.show(`Failed: ${err?.error?.detail ?? err?.message ?? 'error'}`, 'error');
+        },
+      });
+  }
+
+  pillFor(status: string): 'released' | 'pending' | 'held' | 'flagged' | 'info' {
+    return PILL_BY_STATUS[status] ?? 'info';
+  }
+
+  formatBytes(n: number): string {
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 ** 2) return `${(n / 1024).toFixed(1)} KB`;
+    if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1)} MB`;
+    return `${(n / 1024 ** 3).toFixed(2)} GB`;
   }
 }
