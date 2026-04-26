@@ -2,6 +2,19 @@
 
 Day-to-day workflow. Pairs with [README.md](README.md) (the *why*); this is the *how*.
 
+## Quick reference — what to run when
+
+| Scenario | Command |
+|---|---|
+| Fresh laptop, never run TrésorAI | `npm run setup` |
+| New work day / after reboot | `npm run start-docker` then `npm start` |
+| Edited `package.json` / Python deps changed | `npm start` *(auto-syncs)* |
+| Edited `docker-compose.yaml` / DAG folder structure | `npm run stop-docker` then `npm run start-docker` |
+| Done iterating, want to free memory | `npm stop` then `npm run stop-docker` |
+| Want to wipe everything fresh | `npm run stop-docker-hard` |
+
+---
+
 ## Three commands. That's the whole surface.
 
 ```bash
