@@ -418,6 +418,8 @@ No VPN. No log diving. The trace IS the explanation.
 
 ## 13. Quickstart
 
+> Daily developer flow (start / run / shutdown / cheatsheet) lives in **[README_Developer_Notes.md](README_Developer_Notes.md)**.
+
 ```bash
 # 1. Conda env at $HOME/runtime_data/python_venvs/TresorAI (Python 3.12)
 npm run setup:conda:create
