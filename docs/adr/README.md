@@ -18,3 +18,4 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0013](./0013-vertex-ai-centric-ml-platform-on-gcp.md) | Vertex-AI-centric ML platform on GCP | Accepted |
 | [0014](./0014-local-dataset-cache-and-idempotent-loads.md) | Local dataset cache + idempotent Airflow loads | Accepted |
 | [0015](./0015-cloud-agnostic-storage-adapter.md) | Cloud-agnostic storage adapter (GCS / S3 / Azure feature toggle) | Accepted |
+| [0016](./0016-airflow-dags-as-deployable-artifact.md) | Airflow DAGs at repo root (not `infra/local/`) | Accepted |

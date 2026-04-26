@@ -13,6 +13,7 @@ cd "$SCRIPT_DIR"
 STACKS=(
   # mlflow
   # qdrant
+  airflow
   kafka
   redis
   postgres

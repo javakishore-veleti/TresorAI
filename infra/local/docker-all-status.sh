@@ -11,6 +11,7 @@ STACKS=(
   postgres
   redis
   kafka
+  airflow
   # qdrant
   # mlflow
 )

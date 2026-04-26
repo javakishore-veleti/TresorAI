@@ -17,6 +17,7 @@ STACKS=(
   postgres
   redis
   kafka
+  airflow    # ADR-0012 — orchestrator for all 3 AI/ML tracks + Initial Downloads
   # qdrant   # alternate vector DB — pgvector is primary per ADR-003; enable for experimentation
   # mlflow   # XGBoost experiment tracking — enable for M5
 )
