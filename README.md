@@ -260,25 +260,26 @@ Seven views — each answers a different question, each is owned by a different 
 ```
 ┌─ portal-customer ─┐    ┌─ portal-admin ─┐
 │   Angular 17+     │    │  Angular 17+   │
-└────────┬──────────┘    └────────┬───────┘
-         │                        │
-         └─────────┬──────────────┘
-                   │ REST + WebSocket
-         ┌─────────▼─────────┐                ┌────────────────┐
-         │   api-gateway     │◀──── Kafka ────│ ingest-service │
-         │  (Spring Boot,    │   tx.events    │ (Spring Boot,  │
-         │  WebFlux + WS)    │                │  bank-feed)    │
-         └────────┬──────────┘                └────────────────┘
-                  │ REST
-                  ▼
-         ┌──────────────────────────┐
-         │   intelligence-service   │
-         │   FastAPI + Gemini 2.0   │
-         │   pgvector + Prophet     │
-         └──────────────────────────┘
-                  │
-                  ▼
-         Postgres + pgvector · Redis
+└────────┬──────────┘    └─────┬──────┬───┘
+         │                     │      │
+         │ REST+WS             │      │ admin REST
+         ▼                     │      ▼
+┌─────────────────┐            │   ┌────────────────────┐
+│   api-gateway   │◀── Kafka ──┼───│  ingest-service    │
+│  Spring Boot 3  │ tx.events  │   │  Spring Boot 3     │
+│  WebFlux + WS   │            │   │  Kafka producer    │
+└────────┬────────┘            │   └────────────────────┘
+         │ REST                │
+         ▼                     ▼
+┌──────────────────────┐   ┌──────────────────────────┐
+│ intelligence-service │   │      admin-api            │
+│  FastAPI · Gemini    │   │  FastAPI · admin ops      │
+│  pgvector · Prophet  │   │  Initial Downloads, DAG   │
+│  XGBoost · DL models │   │  triggers, System Health  │
+└──────────┬───────────┘   └──────┬─────────┬──────────┘
+           │                      │         │
+           ▼                      ▼         ▼
+        Postgres + pgvector · Redis · Kafka · Airflow / Cloud Composer
 ```
 
 **Non-functional targets:**
@@ -414,38 +415,33 @@ No VPN. No log diving. The trace IS the explanation.
 | `portal-admin` | `frontend/portal-admin` | Angular 17+, TypeScript, Tailwind | 4201 | Cloud Run |
 | `api-gateway` | `backend/api-gateway` | Java 21, Spring Boot 3, WebFlux + WebSocket | 8080 | Cloud Run |
 | `ingest-service` | `backend/ingest-service` | Java 21, Spring Boot 3, Spring Kafka producer | 8081 | Cloud Run |
-| `intelligence-service` | `backend/intelligence-service` | Python 3.12, FastAPI, Gemini 2.0 Flash, pgvector, Prophet | 8090 | Cloud Run |
+| `intelligence-service` | `backend/intelligence-service` | Python 3.12, FastAPI, Gemini 2.0 Flash, pgvector, Prophet, XGBoost, PyTorch, sentence-transformers | 8090 | Cloud Run |
+| `admin-api` | `backend/admin-api` | Python 3.12, FastAPI · admin ops only — Initial Downloads catalog, Airflow triggers, System Health probes | 8091 | Cloud Run |
 | `contracts` | `contracts/` | OpenAPI 3.1 + AsyncAPI 2.6 | n/a | n/a |
 | `infra` | `infra/` | docker-compose (per tool), gcloud manifests | n/a | GCP |
 
 ## 13. Quickstart
 
-> Daily developer flow (start / run / shutdown / cheatsheet) lives in **[README_Developer_Notes.md](README_Developer_Notes.md)**.
+> Three commands. That's the whole surface. Detailed daily workflow lives in **[README_Developer_Notes.md](README_Developer_Notes.md)**.
 
 ```bash
-# 1. Conda env at $HOME/runtime_data/python_venvs/TresorAI (Python 3.12)
-npm run setup:conda:create
-
-# 2. Activate (must be sourced)
-source ./scripts/conda-activate.sh
-
-# 3. Local infra (postgres+pgvector, redis, kafka)
-npm run infra:up
-npm run infra:status
-
-# 4. Generate brand favicons (committed; rebuild only if you change the SVG)
-npm run generate:favicons
-
-# 5. Once intelligence-service is scaffolded
-npm run setup:python:deps
-
-# Or run the full sequence
-npm run setup:initial:all
-
-# Tear down
-npm run infra:down
-source ./scripts/conda-deactivate.sh
+npm run setup     # first time on a laptop — conda env, deps, Docker infra. Idempotent.
+npm start         # daily — auto-syncs deps, brings up Docker, starts every scaffolded
+                  # service + portal in one terminal via concurrently. Ctrl+C kills all.
+npm stop          # hard teardown — Docker containers + volumes + networks gone.
 ```
+
+After `npm start`, open <http://localhost:4201> and click the coral-red **Run Initial Downloads** banner to load datasets via Airflow. **Data downloads never run from the CLI.** *(See [ADR-0007](docs/adr/0007-no-adhoc-downloads-install-discipline.md).)*
+
+Other handy URLs once `npm start` is up:
+
+| URL | What |
+|---|---|
+| <http://localhost:4200> | `portal-customer` *(SMB CFO UX)* |
+| <http://localhost:4201> | `portal-admin` *(ops + install UX)* |
+| <http://localhost:4201/system> | Live System Health *(cloud-aware probe of every service via `TAI_ENV`)* |
+| <http://localhost:8091/docs> | `admin-api` Swagger UI |
+| <http://localhost:8090/docs> | `intelligence-service` Swagger UI |
 
 ## 14. Design
 
