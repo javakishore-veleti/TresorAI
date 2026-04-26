@@ -14,3 +14,7 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0008](./0008-per-tool-local-infra-compose.md) | Per-tool local infra (one compose per tool) | Accepted |
 | [0009](./0009-conda-env-pinned-path.md) | Conda env at pinned project path | Accepted |
 | [0010](./0010-visual-design-direction.md) | Visual design direction — no black/gray, treasure palette | Accepted |
+| [0012](./0012-airflow-for-initial-downloads.md) | Apache Airflow + Cloud Composer for all three AI/ML tracks | Accepted |
+| [0013](./0013-vertex-ai-centric-ml-platform-on-gcp.md) | Vertex-AI-centric ML platform on GCP | Accepted |
+| [0014](./0014-local-dataset-cache-and-idempotent-loads.md) | Local dataset cache + idempotent Airflow loads | Accepted |
+| [0015](./0015-cloud-agnostic-storage-adapter.md) | Cloud-agnostic storage adapter (GCS / S3 / Azure feature toggle) | Accepted |
