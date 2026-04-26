@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import random
 import time
 import uuid
 from datetime import datetime, timezone
@@ -23,6 +22,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from app.airflow_client import AIRFLOW_BASE, AirflowError, get_dag_run, trigger_dag
 from app.system_health import SystemHealth, gather_system_health
 
 app = FastAPI(
@@ -179,51 +179,66 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-async def _simulate_run(dataset_key: str, run_id: str, forced: bool) -> None:
+# Map Airflow's dagRun states to our 7-state catalog status (ADR-0014).
+_AIRFLOW_TO_STATUS = {
+    "queued":  "running",
+    "running": "running",
+    "success": "success",
+    "failed":  "failed",
+}
+
+
+async def _poll_airflow_run(dataset_key: str, dag_id: str, run_id: str, record: RunRecord) -> None:
+    """Poll Airflow until the dagRun reaches a terminal state, mirror state into the catalog.
+
+    Updates entry.current_status, entry.last_run_progress, entry.last_run_at, and
+    appends/finalizes the RunRecord. Bounded loop — stops after 5 minutes regardless.
+    """
     entry = _CATALOG[dataset_key]
-    runs = _RUNS[dataset_key]
-    started = _now_iso()
     started_perf = time.perf_counter()
 
-    gb = max(0.05, entry.approx_size_bytes / 1024**3)
-    duration_s = min(12.0, 1.0 + gb)
-    steps = 20
-    step_s = duration_s / steps
+    progress_step = 5  # cosmetic — real progress isn't surfaced by Airflow REST
+    for tick in range(100):                # max ~5 min at 3 s per tick
+        await asyncio.sleep(3.0)
+        try:
+            run = await get_dag_run(dag_id, run_id)
+        except AirflowError:
+            continue                       # transient — keep polling
 
-    record = RunRecord(
-        id=run_id, dataset_key=dataset_key, airflow_dag_id=entry.airflow_dag_id,
-        status="running", started_at=started, finished_at=None, duration_ms=None,
-        forced=forced, triggered_by=None, rows_loaded=None, error_message=None,
-    )
-    runs.append(record)
+        af_state = (run.get("state") or "queued").lower()
+        catalog_state = _AIRFLOW_TO_STATUS.get(af_state, "running")
 
-    async with _LOCK:
-        entry.current_status = "running"
-        entry.last_run_id = run_id
-        entry.last_run_progress = 0
-        entry.last_run_at = started
-
-    for i in range(1, steps + 1):
-        await asyncio.sleep(step_s)
         async with _LOCK:
-            entry.last_run_progress = int(100 * i / steps)
+            entry.current_status = catalog_state
+            if catalog_state == "running":
+                entry.last_run_progress = min(95, 5 + tick * progress_step)
 
-    finished_perf = time.perf_counter()
-    duration_ms = int((finished_perf - started_perf) * 1000)
-    rows = int(gb * 1_000_000) if gb > 0.5 else random.randint(50, 5_000)
+        if af_state in ("success", "failed"):
+            duration_ms = int((time.perf_counter() - started_perf) * 1000)
 
+            async with _LOCK:
+                entry.last_run_progress = 100
+                entry.last_run_at = _now_iso()
+                if af_state == "success":
+                    entry.rows_loaded = entry.rows_loaded or 0
+                    if entry.first_loaded_at is None:
+                        entry.first_loaded_at = record.started_at
+                else:
+                    entry.last_error = run.get("note") or "DAG run failed"  # type: ignore[attr-defined]
+
+            record.status = af_state
+            record.finished_at = _now_iso()
+            record.duration_ms = duration_ms
+            return
+
+    # Timed out — mark failed so the UI clears the spinner
     async with _LOCK:
-        entry.current_status = "success"
+        entry.current_status = "failed"
         entry.last_run_progress = 100
-        entry.rows_loaded = rows
-        if entry.first_loaded_at is None:
-            entry.first_loaded_at = started
         entry.last_run_at = _now_iso()
-
-    record.status = "success"
+    record.status = "failed"
     record.finished_at = _now_iso()
-    record.duration_ms = duration_ms
-    record.rows_loaded = rows
+    record.error_message = "Timed out waiting for Airflow dagRun"
 
 
 def _resolve_storage_paths(dataset_key: str) -> dict[str, str | None]:
@@ -310,8 +325,44 @@ async def trigger_run(
             airflow_dag_id=entry.airflow_dag_id, status="already_present",
         )
 
-    run_id = str(uuid.uuid4())
-    background.add_task(_simulate_run, dataset_key, run_id, body.force)
+    # Real Airflow trigger. Run ID format follows Airflow's convention so the
+    # webserver UI deep-link works: /dags/<dag_id>/grid?dag_run_id=<run_id>
+    run_id = f"manual__{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}__{uuid.uuid4().hex[:8]}"
+
+    try:
+        await trigger_dag(
+            dag_id=entry.airflow_dag_id,
+            run_id=run_id,
+            conf={
+                "dataset_key": dataset_key,
+                "force": body.force,
+                "triggered_by": body.triggered_by or "admin-portal",
+            },
+        )
+    except AirflowError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"Cannot trigger Airflow DAG '{entry.airflow_dag_id}': {e}. "
+                f"Confirm Airflow is running (System Health → Orchestration)."
+            ),
+        )
+
+    record = RunRecord(
+        id=run_id, dataset_key=dataset_key, airflow_dag_id=entry.airflow_dag_id,
+        status="queued", started_at=_now_iso(), finished_at=None, duration_ms=None,
+        forced=body.force, triggered_by=body.triggered_by, rows_loaded=None,
+        error_message=None,
+    )
+    _RUNS[dataset_key].append(record)
+
+    async with _LOCK:
+        entry.current_status = "running"
+        entry.last_run_id = run_id
+        entry.last_run_progress = 5
+        entry.last_run_at = record.started_at
+
+    background.add_task(_poll_airflow_run, dataset_key, entry.airflow_dag_id, run_id, record)
 
     return TriggerRunResponse(
         dataset_key=dataset_key, run_id=run_id,
