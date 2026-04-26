@@ -8,6 +8,6 @@ dag = build_initial_download_dag(
     dag_id="setup_ofac_eu_sanctions",
     dataset_key="ofac_sanctions",
     description="OFAC SDN + EU consolidated sanctions lists — daily refresh",
-    schedule="0 2 * * *",                      # 02:00 UTC daily
+    schedule=None,
     tags=["supplier-intelligence", "sanctions", "compliance", "tresorai"],
 )
