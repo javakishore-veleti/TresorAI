@@ -19,6 +19,10 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+    # Disable safe_mode keyword filter — our DAG factory pattern hides the
+    # literal 'airflow'/'DAG' strings in shared/idempotent_dag.py, so per-DAG
+    # files don't trip the discovery filter.
+    AIRFLOW__CORE__DAG_DISCOVERY_SAFE_MODE: "false"
     AIRFLOW__CORE__FERNET_KEY: "tresorai-dev-fernet-not-for-prod-32b="
     AIRFLOW__WEBSERVER__SECRET_KEY: "tresorai-dev-webserver-not-for-prod"
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
