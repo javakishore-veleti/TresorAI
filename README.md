@@ -40,6 +40,35 @@
 
 ## 1. Context
 
+### Definitions
+
+> **SMB** *(Small and Medium-sized Business)* — common operating definition: **10–250 employees, $1M–$50M annual revenue**. Synonyms: SME (Small and Medium Enterprise, the EU/OECD term), mid-market when on the upper end. SMBs are too big for shoebox accounting, too small to afford enterprise treasury platforms (Kyriba, FIS Quantum, SAP Treasury). This is the **missing middle** of fintech — and the segment TrésorAI is built for.
+>
+> **Business domain** — TrésorAI sits at the intersection of three classical financial sub-domains:
+>
+> | Sub-domain | What it means |
+> |---|---|
+> | **Treasury management** | Cash position, 30/60/90-day forecasting, payment-timing decisions, working-capital optimization |
+> | **Payment fraud / AP risk** | Catching fraudulent, duplicate, or misdirected outbound payments **before** they ship — typosquatted IBANs, off-hours payroll runs, look-alike suppliers |
+> | **Supplier intelligence** *(KYV — Know Your Vendor)* | Embedding-based similarity over a tenant's own supplier history; vendor onboarding hygiene; counterparty risk |
+
+### Who deploys TrésorAI *(the financial institutions that have these use cases)*
+
+TrésorAI is **B2B2C** — it ships under a channel partner's brand to the partner's SMB customers. The partners that have this use case:
+
+| Channel partner | Examples | Why they care |
+|---|---|---|
+| **Commercial / business-banking arms of banks** | Regional and community banks; business-banking divisions of national banks (Wells Fargo Business Banking, Chase for Business, BMO Harris, BNP Paribas SME, Santander SME) | Differentiate their SMB depository product; reduce fraud losses they bear under Reg E / payment-services-directive liability |
+| **SMB-focused neobanks / fintech-banks** | Mercury, Brex, Ramp, Relay, Bluevine, Novo, Tide, Wise Business, Qonto, Revolut Business | Their entire positioning is "modern finance for SMBs" — an agentic AP-fraud + cash-flow copilot is a natural extension |
+| **AP automation & accounting ISVs** | Bill.com, Tipalti, Stampli, AvidXchange, Bottomline, Sage Intacct, QuickBooks Enterprise, Xero, NetSuite (SMB tier) | They already own the AP workflow; they need an AI layer that adds judgment, not just OCR |
+| **Embedded-finance platforms** | Treasury Prime, Synctera, Unit, Solid, Modern Treasury | They white-label TrésorAI for non-bank distribution partners (vertical SaaS, marketplaces) |
+| **Open-banking / data-aggregator partners** *(integration, not channel)* | Plaid, Bridge, TrueLayer, Tink, Belvo, Yapily, Salt Edge | They are the data-feed source `ingest-service` consumes; not a sales channel |
+| **Payment processors with B2B AP focus** | Stripe Business, Adyen for Platforms, GoCardless | Adjacent — typically integration partners more than distribution partners |
+
+The product is multi-tenant from day one (§3, §11.1) so a single TrésorAI install can serve hundreds of SMB tenants under a single channel partner's brand.
+
+### The recurring losses we eliminate
+
 A 30-person SMB pays 800 invoices a month. Payroll on the 15th. Rent on the 1st. A handful of new suppliers every quarter. Today, the CFO catches AP fraud only when the bank statement arrives — too late. Cash forecasts live in a spreadsheet that's updated weekly, by hand, and is wrong by Wednesday.
 
 **Two recurring losses:**
