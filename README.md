@@ -441,61 +441,20 @@ Detailed task breakdown: `TresorAI_Portfolio_Build_Plan.xlsx` (private — not i
 
 ## 16. Tech stack
 
+| Layer | Stack |
+|---|---|
+| **Frontend** | Angular 17+ · TypeScript 5 · Tailwind 3 · RxJS 7 |
+| **AI / ML** *(intelligence-service)* | Gemini 2.0 Flash *(agent + tool use, LLM-as-judge)* · `text-embedding-004` · `sentence-transformers` *(fallback)* · pgvector · Prophet · XGBoost *(M5)* · OpenTelemetry |
+| **Backend — Python (AI)** | Python 3.12 · FastAPI · Pydantic · uv · Conda *(pinned env)* |
+| **Backend — JVM (streaming + BFF)** | Java 21 · Spring Boot 3 · Spring Kafka · Maven |
+| **Data & messaging** | Apache Kafka 3.9 *(KRaft)* · PostgreSQL 16 · Redis 7 |
+| **Contracts & APIs** | OpenAPI 3.1 · AsyncAPI 2.6 · WebSocket |
+| **Infra & DevOps** | Google Cloud · Cloud Run · Artifact Registry · Docker · GitHub Actions |
+| **Quality** | JUnit 5 · pytest · Jest · ESLint · Prettier |
+
 <details>
-<summary><strong>Click to expand the full tech-stack badge wall</strong></summary>
+<summary>Show the full badge wall</summary>
 
-### Frontend
-[![Angular](https://img.shields.io/badge/Angular-17+-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![RxJS](https://img.shields.io/badge/RxJS-7.x-B7178C?style=flat-square&logo=reactivex&logoColor=white)](https://rxjs.dev/)
-
-### AI / ML — `intelligence-service`
-[![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
-[![Vertex AI](https://img.shields.io/badge/Vertex%20AI-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
-[![Agent Loop](https://img.shields.io/badge/Pattern-Agent%20%2B%20Tool%20Use-8a2be2?style=flat-square)](#)
-[![LLM-as-Judge](https://img.shields.io/badge/Pattern-LLM--as--Judge-8a2be2?style=flat-square)](#)
-[![text-embedding-004](https://img.shields.io/badge/Embeddings-text--embedding--004-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/gemini-api/docs/embeddings)
-[![sentence-transformers](https://img.shields.io/badge/sentence--transformers-fallback-FFB000?style=flat-square&logo=huggingface&logoColor=black)](https://www.sbert.net/)
-[![pgvector](https://img.shields.io/badge/pgvector-vector%20search-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
-[![Prophet](https://img.shields.io/badge/Prophet-cash--flow%20forecast-1F77B4?style=flat-square&logo=meta&logoColor=white)](https://facebook.github.io/prophet/)
-[![XGBoost](https://img.shields.io/badge/XGBoost-fraud%20model%20(M5)-EB6F0E?style=flat-square)](https://xgboost.readthedocs.io/)
-[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-traces-425CC7?style=flat-square&logo=opentelemetry&logoColor=white)](https://opentelemetry.io/)
-
-### Backend — Python (AI service)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-[![uv](https://img.shields.io/badge/uv-deps-DE5FE9?style=flat-square&logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
-[![Conda](https://img.shields.io/badge/Conda-pinned%20env-44A833?style=flat-square&logo=anaconda&logoColor=white)](https://docs.conda.io/)
-
-### Backend — JVM (streaming spine + BFF)
-[![Java](https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Kafka](https://img.shields.io/badge/Spring%20Kafka-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/projects/spring-kafka)
-[![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
-
-### Data & Messaging
-[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-3.9-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
-
-### Contracts & APIs
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?style=flat-square&logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
-[![AsyncAPI](https://img.shields.io/badge/AsyncAPI-2.6-FF3D00?style=flat-square&logo=asyncapi&logoColor=white)](https://www.asyncapi.com/)
-[![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=flat-square&logo=socket.io&logoColor=white)](https://developer.mozilla.org/docs/Web/API/WebSockets_API)
-
-### Infra & DevOps
-[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/)
-[![Cloud Run](https://img.shields.io/badge/Cloud%20Run-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
-
-### Quality
-[![JUnit 5](https://img.shields.io/badge/JUnit%205-25A162?style=flat-square&logo=junit5&logoColor=white)](https://junit.org/junit5/)
-[![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org/)
-[![Jest](https://img.shields.io/badge/Jest-C21325?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
-[![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=flat-square&logo=eslint&logoColor=white)](https://eslint.org/)
-[![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=black)](https://prettier.io/)
+[![Angular](https://img.shields.io/badge/Angular-17+-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Tailwind](https://img.shields.io/badge/Tailwind-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/) [![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/) [![pgvector](https://img.shields.io/badge/pgvector-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector) [![Prophet](https://img.shields.io/badge/Prophet-1F77B4?style=flat-square&logo=meta&logoColor=white)](https://facebook.github.io/prophet/) [![XGBoost](https://img.shields.io/badge/XGBoost-EB6F0E?style=flat-square)](https://xgboost.readthedocs.io/) [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/) [![Java](https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![Apache Kafka](https://img.shields.io/badge/Kafka-3.9-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/) [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?style=flat-square&logo=openapiinitiative&logoColor=white)](https://www.openapis.org/) [![AsyncAPI](https://img.shields.io/badge/AsyncAPI-2.6-FF3D00?style=flat-square&logo=asyncapi&logoColor=white)](https://www.asyncapi.com/) [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com/run) [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/) [![GitHub Actions](https://img.shields.io/badge/Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions) [![OpenTelemetry](https://img.shields.io/badge/OTel-425CC7?style=flat-square&logo=opentelemetry&logoColor=white)](https://opentelemetry.io/)
 
 </details>
