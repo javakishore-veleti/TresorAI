@@ -11,6 +11,7 @@ import asyncio
 import os
 import socket
 import time
+from datetime import datetime, timezone
 from typing import Literal
 
 import httpx
@@ -180,6 +181,6 @@ async def gather_system_health() -> SystemHealth:
 
     return SystemHealth(
         environment=_env(),
-        checked_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        checked_at=datetime.now(timezone.utc).isoformat(),
         services=list(services),
     )
