@@ -2,7 +2,7 @@
   "name": "tresorai",
   "version": "0.0.1",
   "private": true,
-  "description": "TrésorAI monorepo — agentic SMB treasury & payment-fraud copilot. This package.json is the unified task runner; per-module commands live in their own package.json / pom.xml / pyproject.toml.",
+  "description": "TrésorAI monorepo. Two commands you remember: 'npm run setup' once, 'npm start' every day. Data downloads run from the admin portal -> Airflow, not the CLI.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,34 +12,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "setup:initial:all": "npm run setup:conda:create && npm run setup:python:deps && npm run setup:portals:install && npm run infra:up && npm run generate:favicons && npm run setup:initial:downloads",
-
-    "setup:portals:install": "bash scripts/install-portals.sh",
-
-    "setup:conda:create": "bash scripts/conda-create.sh",
-    "setup:conda:remove": "bash scripts/conda-remove.sh",
-    "env:activate": "echo 'Run: source ./scripts/conda-activate.sh'",
-    "env:deactivate": "echo 'Run: source ./scripts/conda-deactivate.sh'",
-
-    "setup:python:deps": "bash scripts/python-deps.sh",
-
-    "infra:up": "bash infra/local/docker-all-up.sh",
-    "infra:down": "bash infra/local/docker-all-down.sh",
-    "infra:down:hard": "bash infra/local/docker-all-down-hard.sh",
-    "infra:status": "bash infra/local/docker-all-status.sh",
-
-    "dev:up": "bash scripts/dev-up.sh",
-    "dev:down": "bash scripts/dev-down.sh",
-
-    "generate:favicons": "node scripts/generate-favicons.js",
-
-    "datasets:status":     "$HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli status",
-    "datasets:synthesize": "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli synthesize --target-gb 5",
-    "datasets:ofac":       "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli ofac",
-    "datasets:all":        "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli all --target-gb 5",
-    "notebook:quickstart": "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/jupyter lab notebooks/00-quickstart-all-three-tracks.py",
-
-    "setup:initial:downloads": "echo 'Reference-data seeding runs from the admin portal: Administration -> Data Management -> Initial Downloads. CLI counterpart: npm run datasets:all'"
+    "setup": "bash scripts/setup.sh",
+    "start": "bash scripts/dev-up.sh",
+    "stop":  "bash scripts/dev-down.sh"
   },
   "devDependencies": {
     "concurrently": "^9.0.1",

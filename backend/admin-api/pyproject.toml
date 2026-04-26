@@ -1,0 +1,52 @@
+[project]
+name = "tresorai-admin-api"
+version = "0.0.1"
+description = "TrésorAI admin-api — dedicated FastAPI service for portal-admin operations: Initial Downloads catalog + run history, Airflow DAG triggers, callback receivers, tenant + model-registry views."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Kishore Veleti" }]
+
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.9.0",
+  "pydantic-settings>=2.5.0",
+
+  # DB
+  "sqlalchemy>=2.0.0",
+  "psycopg[binary]>=3.2.0",
+  "alembic>=1.13.0",
+
+  # Airflow REST client (httpx is plenty)
+  "httpx>=0.27.0",
+  "tenacity>=9.0.0",
+
+  # Observability
+  "opentelemetry-api>=1.27.0",
+  "opentelemetry-sdk>=1.27.0",
+  "opentelemetry-instrumentation-fastapi>=0.48b0",
+  "structlog>=24.4.0",
+
+  "python-dotenv>=1.0.0",
+  "rich>=13.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "ruff>=0.6.0",
+  "mypy>=1.11.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

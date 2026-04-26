@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { TaiToastHostComponent } from './primitives';
+import { PendingSetupBannerComponent } from './shared/pending-setup-banner.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TaiToastHostComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TaiToastHostComponent, PendingSetupBannerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

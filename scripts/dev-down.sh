@@ -8,7 +8,7 @@
 #   3. Removes per-project Docker networks
 #
 # WARNING: this is a HARD teardown — all local data is wiped.
-# Use `npm run infra:down` for a soft stop that preserves data between sessions.
+# For a soft stop that preserves data, run: bash infra/local/docker-all-down.sh
 
 set -euo pipefail
 

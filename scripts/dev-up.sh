@@ -16,6 +16,15 @@ cd "$REPO_ROOT"
 
 CONDA_ENV="$HOME/runtime_data/python_venvs/TresorAI"
 
+# ---------- Pre-flight: setup must have been run ----------
+if [[ ! -d "$CONDA_ENV" ]]; then
+  echo
+  echo "Conda env not found at $CONDA_ENV"
+  echo "First-time on this laptop?  Run:   npm run setup"
+  echo
+  exit 1
+fi
+
 # ---------- Step 0: keep npm deps in sync ----------
 # Runs in every dev:up so package.json changes from other teammates are picked up
 # without anyone needing to remember `npm install`. Fast (~5s) when nothing changed.
@@ -36,7 +45,7 @@ done
 # ---------- Step 1: Docker infra ----------
 echo
 echo "==> Step 1: Docker infra"
-npm run infra:up
+bash infra/local/docker-all-up.sh
 
 # ---------- Step 2 + 3: assemble service commands ----------
 COMMANDS=()
@@ -50,7 +59,18 @@ if [[ -f backend/intelligence-service/pyproject.toml || -f backend/intelligence-
     NAMES+=("intel")
     COLORS+=("yellow")
   else
-    echo "    (skipping intelligence-service: uvicorn not found at $CONDA_ENV/bin/uvicorn — run 'npm run setup:python:deps')"
+    echo "    (skipping intelligence-service: uvicorn not found at $CONDA_ENV/bin/uvicorn — run 'npm run setup')"
+  fi
+fi
+
+# admin-api (Python / FastAPI) — dedicated admin operations service
+if [[ -f backend/admin-api/pyproject.toml ]]; then
+  if [[ -x "$CONDA_ENV/bin/uvicorn" ]]; then
+    COMMANDS+=("cd backend/admin-api && \"$CONDA_ENV/bin/uvicorn\" app.main:app --reload --port 8091")
+    NAMES+=("admin-api")
+    COLORS+=("white")
+  else
+    echo "    (skipping admin-api: uvicorn not found at $CONDA_ENV/bin/uvicorn — run 'npm run setup')"
   fi
 fi
 
@@ -101,7 +121,7 @@ COLORS_JOINED=$(IFS=,; echo "${COLORS[*]}")
 
 echo
 echo "==> Step 2-3: starting [${NAMES[*]}] in parallel"
-echo "    (Ctrl+C kills all of them; run 'npm run dev:down' afterwards to stop Docker.)"
+echo "    (Ctrl+C kills all of them; run 'npm stop' afterwards to stop Docker.)"
 echo
 
 exec npx concurrently \

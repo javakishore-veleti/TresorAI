@@ -1,250 +1,132 @@
 # README — Developer Notes
 
-Day-to-day workflow for working on TrésorAI locally. Pairs with the main [README.md](README.md), which covers the *why*; this file covers the *how*.
+Day-to-day workflow. Pairs with [README.md](README.md) (the *why*); this is the *how*.
 
-## Table of contents
+## The only three commands you need
 
-1. [Prerequisites](#1-prerequisites)
-2. [First time](#2-first-time)
-3. [Starting daily](#3-starting-daily) — Docker → env → middleware → apps → UI
-4. [Running the apps](#4-running-the-apps)
-5. [Shutting down daily](#5-shutting-down-daily) — UI → apps → middleware → env → Docker
-6. [npm command cheatsheet](#6-npm-command-cheatsheet)
-7. [Common gotchas](#7-common-gotchas)
+```bash
+npm run setup     # first time on a laptop — conda env, deps, Docker infra. Idempotent.
+npm start         # daily — auto-syncs deps, brings up Docker, starts every scaffolded
+                  # service + portal in one terminal via concurrently. Ctrl+C kills all.
+npm stop          # hard teardown — Docker containers + volumes + networks gone.
+```
+
+That's it. **Data downloads do NOT run from the CLI** — they happen from the admin
+portal *(http://localhost:4201/administration/data-management/initial-downloads)*
+which triggers Airflow DAGs. See [ADR-0007](docs/adr/0007-no-adhoc-downloads-install-discipline.md) and [ADR-0012](docs/adr/0012-airflow-for-initial-downloads.md).
 
 ---
 
-## 1. Prerequisites
+## Prerequisites
 
-Install once on the laptop.
+| Tool | Version |
+|---|---|
+| Node | 20+ |
+| Conda | recent (Miniconda or Anaconda) |
+| Docker Desktop | recent (daemon must be running) |
+| Java | 21+ *(once Spring Boot services are scaffolded)* |
+| Maven | 3.9+ *(same)* |
 
-| Tool | Version | Used for |
+```bash
+node --version && conda --version && docker --version
+```
+
+---
+
+## First time
+
+```bash
+npm run setup
+```
+
+This runs in sequence:
+
+1. Create conda env at `$HOME/runtime_data/python_venvs/TresorAI`
+2. Install Python deps for every Python service *(intelligence-service, admin-api)*
+3. Install npm deps at the root and in each portal *(in parallel)*
+4. Generate the brand favicons
+5. Bring up Docker infra *(Postgres+pgvector, Redis, Kafka)*
+
+Then it tells you to open the admin portal to load datasets via Airflow.
+
+---
+
+## Daily
+
+```bash
+npm start
+```
+
+What it does, automatically:
+
+- Syncs npm deps at root + portals *(picks up teammate package.json changes)*
+- Brings up Docker infra *(idempotent — already-running containers are fine)*
+- Spawns every scaffolded backend service + portal in **one terminal**, colour-coded:
+
+| Colour | Service | URL |
 |---|---|---|
-| **Node** | 20+ | Root task runner (`npm run …`), favicon generator, Angular portals |
-| **Conda** *(Miniconda / Anaconda)* | recent | Python 3.12 env at `$HOME/runtime_data/python_venvs/TresorAI` |
-| **Docker Desktop** | recent | Local infra stacks (Postgres+pgvector, Redis, Kafka) |
-| **Java** *(JDK 21)* | 21+ | Spring Boot services *(scaffolded later)* |
-| **Maven** | 3.9+ | Build tool for the Spring services |
-| **gcloud CLI** | latest | Optional — only needed once you start on Cloud Run (M2) |
+| green | portal-customer | http://localhost:4200 |
+| blue | portal-admin | http://localhost:4201 |
+| yellow | intelligence-service *(FastAPI)* | http://localhost:8090 |
+| white | admin-api *(FastAPI, dedicated admin ops)* | http://localhost:8091 |
+| cyan | api-gateway *(Spring Boot)* | http://localhost:8080 |
+| magenta | ingest-service *(Spring Boot)* | http://localhost:8081 |
 
-Verify:
-
-```bash
-node --version          # >= 20
-conda --version
-docker --version        # daemon must be running
-java -version           # >= 21
-mvn --version           # >= 3.9
-```
+Ctrl+C kills all of them.
 
 ---
 
-## 2. First time
+## Loading datasets *(via admin portal — never CLI)*
 
-Run these once after cloning the repo. **You are roughly here right now** if you just ran `setup:conda:create`.
+After `npm start`:
 
-```bash
-# 1. Install root npm deps (sharp + png-to-ico for the favicon generator)
-npm install
+1. Open <http://localhost:4201/administration/data-management/initial-downloads>
+2. Each accordion is a dataset. Click **Run download** on the ones you want.
+3. Each click triggers an Airflow DAG via the admin-api service. The DAG:
+   - Checks the local cache at `$HOME/runtime_data/tresorai/datasets/<key>/`
+   - Skips fetch if files + sha-256 + manifest already match *(<1 s)*
+   - Otherwise fetches from the configured cloud storage *(GCS / S3 / Azure — `TAI_STORAGE_PROVIDER`)*
+   - Verifies checksums, touches `_COMPLETE`, registers the run in Postgres
+4. The pending-setup banner at the top of the admin portal shows what's still missing.
 
-# 2. Create the conda env at $HOME/runtime_data/python_venvs/TresorAI
-npm run setup:conda:create
-
-# 3. Activate the env (must be sourced — npm cannot do this for you)
-source ./scripts/conda-activate.sh
-
-# 4. Install Python deps for intelligence-service
-#    Today: a no-op — service not scaffolded yet. Will install real deps after T06.
-npm run setup:python:deps
-
-# 5. Start local infra (Postgres+pgvector, Redis, Kafka)
-npm run infra:up
-npm run infra:status
-
-# 6. (Only if you edited design-system/brand/*.svg) regenerate the favicons
-npm run generate:favicons
-```
-
-Or just one command for the whole sequence:
-
-```bash
-npm run setup:initial:all
-```
-
-> `setup:initial:all` runs steps 2 → 4 → 5 → 6 → the Initial Downloads placeholder. Activation in step 3 must still be done by you because shell state cannot leak out of an npm subprocess.
+Total cache footprint after first install: **30–55 GB** *(survives `git clean -fdx` and reinstalls)*.
 
 ---
 
-## 3. Starting daily
-
-### One-command flow *(recommended)*
+## Stopping
 
 ```bash
-# Auto-syncs npm deps (root + portals), brings up Docker, then starts every
-# backend service / portal that has been scaffolded. The auto-`npm install`
-# step means you do NOT need to remember to run npm install when teammates
-# add or change deps — dev:up handles it. Fast (~5s) when nothing changed.
-npm run dev:up
-
-# Activate conda env in your terminal (separate step — shell state cannot
-# leak out of an npm subprocess; the spawned Python services are wired to
-# the env's binaries directly, so they don't need this).
-source ./scripts/conda-activate.sh
+npm stop
 ```
 
-`dev:up` runs all services in **one terminal** with colour-coded prefixes via [`concurrently`](https://www.npmjs.com/package/concurrently). Ctrl+C kills them all.
+Hard teardown — Postgres, Redis, Kafka data volumes are wiped along with containers. Datasets at `$HOME/runtime_data/tresorai/datasets/` are NOT touched *(they're outside the repo)*.
 
-**`dev:up` step-by-step (what runs automatically):**
-
-| Step | What |
-|---|---|
-| 0 | `npm install` at root + each portal — picks up teammate dep changes |
-| 1 | `npm run infra:up` — Postgres+pgvector, Redis, Kafka |
-| 2 | Spawns scaffolded backend services (intelligence-service, api-gateway, ingest-service) |
-| 3 | Spawns scaffolded portals (portal-customer :4200, portal-admin :4201) |
-
-### Step-by-step flow *(if you want to start things selectively)*
-
-Order: **Docker → conda env → middleware → backend services → frontend portals.**
-
-```bash
-# A. Docker — local infra stacks
-npm run infra:up
-npm run infra:status                          # verify all containers healthy
-
-# B. Conda env (in every terminal where you'll run Python)
-source ./scripts/conda-activate.sh
-
-# C. Middleware — none today (contracts tooling lands at T02)
-
-# D. Backend services — each in its own terminal, after they're scaffolded
-#    intelligence-service (Python / FastAPI)               [available after T06]
-cd backend/intelligence-service && uvicorn app.main:app --reload --port 8090
-
-#    api-gateway (Java / Spring Boot)                      [available after T04]
-cd backend/api-gateway     && mvn spring-boot:run
-
-#    ingest-service (Java / Spring Boot)                   [available after T05]
-cd backend/ingest-service  && mvn spring-boot:run
-
-# E. Frontend portals — each in its own terminal
-#    portal-customer                                       [available after T03]
-cd frontend/portal-customer && npm install && npm run start    # http://localhost:4200
-
-#    portal-admin                                          [available after T03b]
-cd frontend/portal-admin    && npm install && npm run start    # http://localhost:4201
-```
-
-**Today's reality:** only steps A and B run end-to-end. Steps C–E activate as we land T02, T03, T03b, T04, T05, T06.
+For a soft stop that preserves data, run directly: `bash infra/local/docker-all-down.sh`.
 
 ---
 
-## 4. Running the apps
+## Common gotchas
 
-Once steps A–E above are up, these endpoints exist:
-
-| URL | Service |
-|---|---|
-| http://localhost:4200 | `portal-customer` — SMB CFO UX |
-| http://localhost:4201 | `portal-admin` — ops + install UX |
-| http://localhost:8080 | `api-gateway` — REST + WebSocket |
-| http://localhost:8080/actuator/health | `api-gateway` health |
-| http://localhost:8081/actuator/health | `ingest-service` health |
-| http://localhost:8090/health | `intelligence-service` health |
-| http://localhost:8090/docs | `intelligence-service` Swagger UI |
-| `postgres://localhost:5432/tresorai` | Postgres + pgvector — user `tresorai`, pwd `tresorai` |
-| `redis://localhost:6379` | Redis |
-| `kafka://localhost:9092` | Apache Kafka 3.9 (KRaft mode, no Zookeeper) |
-
-Quick smoke checks:
-
-```bash
-# Postgres + pgvector extension
-psql postgresql://tresorai:tresorai@localhost:5432/tresorai -c "SELECT extname FROM pg_extension;"
-# Expect: vector, pg_trgm, plpgsql
-
-# Redis
-docker exec -it tresorai-redis redis-cli ping
-# Expect: PONG
-
-# Kafka — list topics
-docker exec -it tresorai-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
-```
-
----
-
-## 5. Shutting down daily
-
-### One-command flow *(if you started with `npm run dev:up`)*
-
-```bash
-# Step 1: in the dev:up terminal, press Ctrl+C — this kills every running
-# service and portal that concurrently spawned.
-
-# Step 2: stop the Docker stacks.
-npm run dev:down
-
-# Step 3: deactivate the conda env (in every terminal where you sourced activate).
-source ./scripts/conda-deactivate.sh
-```
-
-### Step-by-step flow *(reverse the startup order)*
-
-Order: **UI → apps → middleware → conda env → Docker.**
-
-```bash
-# A. Frontend portals
-#    Ctrl+C in each terminal running `ng serve` / `npm run start`.
-
-# B. Backend services
-#    Ctrl+C in each terminal running `mvn spring-boot:run` / `uvicorn`.
-
-# C. Middleware — none today.
-
-# D. Conda env (in every shell where you sourced activate)
-source ./scripts/conda-deactivate.sh
-
-# E. Docker stacks
-npm run infra:down
-```
-
-To fully wipe local data (use sparingly — destroys Postgres / Kafka volumes):
-
-```bash
-npm run infra:down
-docker volume rm tresorai_pg_data tresorai_redis_data tresorai_kafka_data
-```
-
----
-
-## 6. npm command cheatsheet
-
-| Command | What it does |
-|---|---|
-| `npm run setup:initial:all` | Full first-time setup: conda → python deps → infra → favicons → Initial Downloads placeholder |
-| `npm run setup:conda:create` | Create the conda env at `$HOME/runtime_data/python_venvs/TresorAI` |
-| `npm run setup:conda:remove` | Remove the conda env (confirms first) |
-| `npm run env:activate` | Print the `source` command for activation |
-| `npm run env:deactivate` | Print the `source` command for deactivation |
-| `npm run setup:python:deps` | Install / upgrade `intelligence-service` Python deps (uv → pip fallback) |
-| `npm run infra:up` | Start Docker stacks (Postgres+pgvector, Redis, Kafka) |
-| `npm run infra:status` | `docker compose ps` for each active stack |
-| `npm run infra:down` | Stop Docker stacks |
-| `npm run dev:up` | **One-shot dev start** — auto-`npm install` (root + portals), Docker, every scaffolded service + both portals, multiplexed via `concurrently`. Ctrl+C kills all. |
-| `npm run dev:down` | **Hard teardown** — stops Docker, removes named volumes + per-project networks (wipes Postgres / Kafka / Redis data) |
-| `npm run setup:portals:install` | Install npm deps for both portals in parallel (rarely needed — `dev:up` does this automatically) |
-| `npm run generate:favicons` | Regenerate favicon pack from `design-system/brand/*.svg` |
-| `npm run setup:initial:downloads` | Placeholder — real Initial Downloads runs from `portal-admin` (T22b) |
-
----
-
-## 7. Common gotchas
-
-- **`conda activate` cannot run from inside an npm script.** Shell state from a subprocess never propagates to your terminal. That is why activate / deactivate are sourced shell scripts, not npm scripts. Always run `source ./scripts/conda-activate.sh` *directly* in each terminal that needs the env.
-- **Docker images are pinned to versions already cached locally.** A fresh laptop will pull on the first `infra:up`. See `infra/local/README.md` for the locked tags.
+- **`conda activate` from npm scripts can't propagate** to your terminal. The Python services are wired to the env's binaries directly, so `npm start` works without activating in your shell. You only need to source `./scripts/conda-activate.sh` if you want to run Python *interactively* in a terminal.
+- **Cache lives at `$HOME/runtime_data/tresorai/datasets/`** — outside the repo. Override with `TAI_DATASETS_ROOT` if you need a different disk.
+- **First `npm run setup` is slow** *(~10–15 min)* — Python deps for all three AI/ML tracks (sklearn, xgboost, torch, transformers, sentence-transformers, gemini SDK, ...) plus 500+ MB of node_modules per portal. Subsequent `npm start` is ~5–10 seconds.
 - **Kafka uses KRaft mode** — port 9092 for clients, 9093 for the internal controller. Keep both free.
-- **Per-module `npm install`** lives in each portal directory after `T03` / `T03b`. Root-level `npm install` only pulls in the favicon generator's deps.
-- **Conda env path is deliberate.** `$HOME/runtime_data/python_venvs/TresorAI` lives outside the repo so `git clean -fdx` cannot wipe it. See ADR-0009.
-- **No ad-hoc downloads.** Reference data is only seeded through the admin portal Initial Downloads UI (or its scripted CLI counterpart). See ADR-0007. Do **not** add `wget` / `curl` data-load scripts anywhere outside that flow.
-- **macOS Docker first-pull** for Postgres + Kafka can take a few minutes; later runs are instant.
-- **Add a new local infra stack** by creating `infra/local/<tool>/docker-compose.yaml` and adding `<tool>` to the `STACKS` array in all three `docker-all-*.sh` scripts. See ADR-0008.
+- **No ad-hoc downloads** — see ADR-0007. If you find yourself wanting `wget` or `curl` for dataset fetches, add a DAG instead.
+
+---
+
+## What if you really need to run something specific?
+
+The simple-three-command surface covers 99% of daily work. The lower-level scripts are still here for debugging:
+
+| Need | Direct command |
+|---|---|
+| Bring up only Docker | `bash infra/local/docker-all-up.sh` |
+| Bring down Docker, KEEP volumes | `bash infra/local/docker-all-down.sh` |
+| Show Docker stack status | `bash infra/local/docker-all-status.sh` |
+| Re-create conda env | `bash scripts/conda-create.sh` *(prompts before overwrite)* |
+| Re-install Python deps | `bash scripts/python-deps.sh` |
+| Re-install portal deps | `bash scripts/install-portals.sh` |
+| Regenerate brand favicons | `node scripts/generate-favicons.js` |
+
+These are the building blocks `npm run setup` and `npm start` orchestrate.
