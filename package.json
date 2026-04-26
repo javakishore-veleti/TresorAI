@@ -33,7 +33,13 @@
 
     "generate:favicons": "node scripts/generate-favicons.js",
 
-    "setup:initial:downloads": "echo 'Reference-data seeding runs from the admin portal: Administration -> Data Management -> Initial Downloads. CLI counterpart not implemented yet.'"
+    "datasets:status":     "$HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli status",
+    "datasets:synthesize": "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli synthesize --target-gb 5",
+    "datasets:ofac":       "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli ofac",
+    "datasets:all":        "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/python -m tresorai.data.cli all --target-gb 5",
+    "notebook:quickstart": "cd backend/intelligence-service && $HOME/runtime_data/python_venvs/TresorAI/bin/jupyter lab notebooks/00-quickstart-all-three-tracks.py",
+
+    "setup:initial:downloads": "echo 'Reference-data seeding runs from the admin portal: Administration -> Data Management -> Initial Downloads. CLI counterpart: npm run datasets:all'"
   },
   "devDependencies": {
     "concurrently": "^9.0.1",

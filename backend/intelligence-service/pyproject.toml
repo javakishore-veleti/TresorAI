@@ -1,0 +1,111 @@
+[project]
+name = "tresorai-intelligence"
+version = "0.0.1"
+description = "TrésorAI intelligence service — AI brain for AP-fraud + cash-flow agentic copilot. Spans Classical ML + Deep Learning + Generative AI tracks."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Kishore Veleti" }]
+
+dependencies = [
+  # --- Web layer ---
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.9.0",
+  "pydantic-settings>=2.5.0",
+  "python-multipart>=0.0.12",
+
+  # --- Data engineering ---
+  "pandas>=2.2.0",
+  "numpy>=1.26.0,<2.0",  # XGBoost+SHAP compatibility
+  "pyarrow>=17.0.0",
+  "duckdb>=1.1.0",
+  "polars>=1.7.0",  # fast Parquet I/O for 5+ GB
+
+  # --- Classical ML ---
+  "scikit-learn>=1.5.0",
+  "xgboost>=2.1.0",
+  "lightgbm>=4.5.0",
+  "joblib>=1.4.0",
+  "shap>=0.46.0",  # explainability
+  "imbalanced-learn>=0.12.0",
+
+  # --- Deep Learning ---
+  "torch>=2.4.0",
+  "transformers>=4.45.0",
+  "sentence-transformers>=3.1.0",
+  "accelerate>=1.0.0",
+
+  # --- Generative AI ---
+  "google-generativeai>=0.8.0",
+  "google-cloud-aiplatform>=1.69.0",  # Vertex AI
+
+  # --- Forecasting ---
+  "prophet>=1.1.5",
+  "statsmodels>=0.14.0",
+
+  # --- Vector store / RAG ---
+  "pgvector>=0.3.5",
+  "psycopg[binary]>=3.2.0",
+  "sqlalchemy>=2.0.0",
+
+  # --- Cloud-agnostic storage adapters (lazy-imported per ADR-0015) ---
+  "google-cloud-storage>=2.18.0",
+  "boto3>=1.35.0",
+  "azure-storage-blob>=12.23.0",
+
+  # --- Observability ---
+  "opentelemetry-api>=1.27.0",
+  "opentelemetry-sdk>=1.27.0",
+  "opentelemetry-instrumentation-fastapi>=0.48b0",
+  "structlog>=24.4.0",
+
+  # --- Utilities ---
+  "httpx>=0.27.0",
+  "tenacity>=9.0.0",
+  "tqdm>=4.66.0",
+  "python-dotenv>=1.0.0",
+  "rich>=13.8.0",
+
+  # --- Notebook / exploration ---
+  "jupyterlab>=4.2.0",
+  "ipykernel>=6.29.0",
+  "matplotlib>=3.9.0",
+  "seaborn>=0.13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "pytest-cov>=5.0.0",
+  "ruff>=0.6.0",
+  "mypy>=1.11.0",
+  "httpx>=0.27.0",
+]
+airflow = [
+  "apache-airflow>=2.10.0",
+  "apache-airflow-providers-google>=10.20.0",
+  "apache-airflow-providers-amazon>=9.0.0",
+  "apache-airflow-providers-microsoft-azure>=10.0.0",
+  "apache-airflow-providers-postgres>=5.13.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app", "tresorai"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
