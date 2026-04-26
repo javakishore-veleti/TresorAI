@@ -23,6 +23,7 @@ interface Dataset {
   selector: 'tai-initial-downloads-page',
   standalone: true,
   imports: [FormsModule, TaiAccordionComponent, TaiAlertComponent, TaiStatusPillComponent],
+  host: { class: 'block w-full max-w-5xl' },
   template: `
     <header class="mb-6">
       <div class="text-xs uppercase tracking-wide text-bronze font-semibold">

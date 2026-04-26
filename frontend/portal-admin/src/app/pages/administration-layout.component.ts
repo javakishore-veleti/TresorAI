@@ -11,6 +11,7 @@ interface LeftNavGroup {
   selector: 'tai-administration-layout',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
+  host: { class: 'flex flex-1 w-full min-h-0' },
   template: `
     <!-- Left nav -->
     <aside class="w-60 shrink-0 bg-surface-elevated border-r border-sand">

@@ -6,6 +6,7 @@ import { TaiAlertComponent } from '../primitives';
   selector: 'tai-placeholder-page',
   standalone: true,
   imports: [TaiAlertComponent],
+  host: { class: 'block w-full max-w-5xl' },
   template: `
     <header class="mb-6">
       <h1 class="text-3xl font-semibold text-forest tracking-tight">{{ heading }}</h1>
