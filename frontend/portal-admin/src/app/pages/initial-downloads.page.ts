@@ -163,7 +163,7 @@ const PILL_BY_STATUS: Record<string, 'released' | 'pending' | 'held' | 'flagged'
                   <button
                     type="button"
                     class="px-4 py-2 rounded-tai-sm text-sm font-medium border border-coral text-forest hover:bg-coral-bg transition-colors"
-                    [disabled]="d.current_status === 'running' || !!errorMsg()"
+                    [disabled]="!!errorMsg()"
                     (click)="run(d, true)"
                   >
                     Re-download (force)
