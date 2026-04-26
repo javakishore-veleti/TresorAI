@@ -2,7 +2,7 @@
   "name": "tresorai",
   "version": "0.0.1",
   "private": true,
-  "description": "TrésorAI monorepo. Four commands: 'setup' (once), 'start-docker' (Docker stacks), 'start' (apps + portals), 'stop' (hard teardown). Data downloads run from the admin portal -> Airflow, not the CLI.",
+  "description": "TrésorAI monorepo. Apps and Docker are decoupled — start/stop them independently. Data downloads run from the admin portal -> Airflow, not the CLI.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,11 +12,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "setup":         "bash scripts/setup.sh",
-    "start-docker":  "bash infra/local/docker-all-up.sh",
-    "stop-docker":   "bash infra/local/docker-all-down.sh",
-    "start":         "bash scripts/dev-up.sh",
-    "stop":          "bash scripts/dev-down.sh"
+    "setup":             "bash scripts/setup.sh",
+    "start-docker":      "bash infra/local/docker-all-up.sh",
+    "stop-docker":       "bash infra/local/docker-all-down.sh",
+    "stop-docker-hard":  "bash infra/local/docker-all-down-hard.sh",
+    "start":             "bash scripts/dev-up.sh",
+    "stop":              "bash scripts/dev-down.sh"
   },
   "devDependencies": {
     "concurrently": "^9.0.1",
