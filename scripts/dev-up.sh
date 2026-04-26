@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Bring up the full local TrésorAI dev environment in one command:
+#   1. Docker infra stacks (postgres+pgvector, redis, kafka)
+#   2. Every backend service that has been scaffolded
+#   3. Both portals if they have been scaffolded
+#
+# Services and portals that are not yet scaffolded are skipped silently.
+# All running processes are multiplexed in a single terminal via `concurrently`,
+# with colour-coded prefixes per service. Ctrl+C kills all of them.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+CONDA_ENV="$HOME/runtime_data/python_venvs/TresorAI"
+
+echo "==> Step 1: Docker infra"
+npm run infra:up
+
+# ---------- Step 2 + 3: assemble service commands ----------
+COMMANDS=()
+NAMES=()
+COLORS=()
+
+# intelligence-service (Python / FastAPI)
+if [[ -f backend/intelligence-service/pyproject.toml || -f backend/intelligence-service/requirements.txt ]]; then
+  if [[ -x "$CONDA_ENV/bin/uvicorn" ]]; then
+    COMMANDS+=("cd backend/intelligence-service && \"$CONDA_ENV/bin/uvicorn\" app.main:app --reload --port 8090")
+    NAMES+=("intel")
+    COLORS+=("yellow")
+  else
+    echo "    (skipping intelligence-service: uvicorn not found at $CONDA_ENV/bin/uvicorn — run 'npm run setup:python:deps')"
+  fi
+fi
+
+# api-gateway (Java / Spring Boot)
+if [[ -f backend/api-gateway/pom.xml ]]; then
+  COMMANDS+=("cd backend/api-gateway && mvn spring-boot:run")
+  NAMES+=("api-gw")
+  COLORS+=("cyan")
+fi
+
+# ingest-service (Java / Spring Boot)
+if [[ -f backend/ingest-service/pom.xml ]]; then
+  COMMANDS+=("cd backend/ingest-service && mvn spring-boot:run")
+  NAMES+=("ingest")
+  COLORS+=("magenta")
+fi
+
+# portal-customer (Angular)
+if [[ -f frontend/portal-customer/package.json ]]; then
+  COMMANDS+=("cd frontend/portal-customer && npm run start")
+  NAMES+=("customer")
+  COLORS+=("green")
+fi
+
+# portal-admin (Angular)
+if [[ -f frontend/portal-admin/package.json ]]; then
+  COMMANDS+=("cd frontend/portal-admin && npm run start")
+  NAMES+=("admin")
+  COLORS+=("blue")
+fi
+
+# ---------- Step 4: run them all in parallel ----------
+if [[ ${#COMMANDS[@]} -eq 0 ]]; then
+  echo
+  echo "==> Step 2-3: nothing to start yet"
+  echo
+  echo "    Docker infra is up, but no backend services or portals have been scaffolded."
+  echo "    Land T02 / T03 / T03b / T04 / T05 / T06 to enable parallel start here."
+  echo
+  echo "    Health checks you CAN run today:"
+  echo "      docker exec -it tresorai-redis    redis-cli ping"
+  echo "      psql postgresql://tresorai:tresorai@localhost:5432/tresorai -c 'SELECT extname FROM pg_extension;'"
+  exit 0
+fi
+
+NAMES_JOINED=$(IFS=,; echo "${NAMES[*]}")
+COLORS_JOINED=$(IFS=,; echo "${COLORS[*]}")
+
+echo
+echo "==> Step 2-3: starting [${NAMES[*]}] in parallel"
+echo "    (Ctrl+C kills all of them; run 'npm run dev:down' afterwards to stop Docker.)"
+echo
+
+exec npx concurrently \
+  --names "$NAMES_JOINED" \
+  --prefix-colors "$COLORS_JOINED" \
+  --kill-others-on-fail \
+  --handle-input \
+  "${COMMANDS[@]}"

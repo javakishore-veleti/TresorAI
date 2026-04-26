@@ -25,11 +25,15 @@
     "infra:down": "bash infra/local/docker-all-down.sh",
     "infra:status": "bash infra/local/docker-all-status.sh",
 
+    "dev:up": "bash scripts/dev-up.sh",
+    "dev:down": "bash scripts/dev-down.sh",
+
     "generate:favicons": "node scripts/generate-favicons.js",
 
     "setup:initial:downloads": "echo 'Reference-data seeding runs from the admin portal: Administration -> Data Management -> Initial Downloads. CLI counterpart not implemented yet.'"
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
     "png-to-ico": "^2.1.8",
     "sharp": "^0.33.5"
   }

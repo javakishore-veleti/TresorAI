@@ -77,7 +77,25 @@ npm run setup:initial:all
 
 ## 3. Starting daily
 
-Order matters: **Docker → conda env → middleware → backend services → frontend portals.**
+### One-command flow *(recommended)*
+
+```bash
+# Brings up Docker infra AND every backend service / portal that has been scaffolded.
+# Today: only Docker comes up (services not scaffolded yet). The same command grows
+# automatically as T02 / T03 / T03b / T04 / T05 / T06 land — no script changes needed.
+npm run dev:up
+
+# Activate conda env in your terminal (separate step — shell state cannot
+# leak out of an npm subprocess; the spawned Python services are wired to
+# the env's binaries directly, so they don't need this).
+source ./scripts/conda-activate.sh
+```
+
+`dev:up` runs all services in **one terminal** with colour-coded prefixes via [`concurrently`](https://www.npmjs.com/package/concurrently). Ctrl+C kills them all.
+
+### Step-by-step flow *(if you want to start things selectively)*
+
+Order: **Docker → conda env → middleware → backend services → frontend portals.**
 
 ```bash
 # A. Docker — local infra stacks
@@ -147,7 +165,22 @@ docker exec -it tresorai-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server
 
 ## 5. Shutting down daily
 
-Reverse the startup order: **UI → apps → middleware → conda env → Docker.**
+### One-command flow *(if you started with `npm run dev:up`)*
+
+```bash
+# Step 1: in the dev:up terminal, press Ctrl+C — this kills every running
+# service and portal that concurrently spawned.
+
+# Step 2: stop the Docker stacks.
+npm run dev:down
+
+# Step 3: deactivate the conda env (in every terminal where you sourced activate).
+source ./scripts/conda-deactivate.sh
+```
+
+### Step-by-step flow *(reverse the startup order)*
+
+Order: **UI → apps → middleware → conda env → Docker.**
 
 ```bash
 # A. Frontend portals
@@ -187,6 +220,8 @@ docker volume rm tresorai_pg_data tresorai_redis_data tresorai_kafka_data
 | `npm run infra:up` | Start Docker stacks (Postgres+pgvector, Redis, Kafka) |
 | `npm run infra:status` | `docker compose ps` for each active stack |
 | `npm run infra:down` | Stop Docker stacks |
+| `npm run dev:up` | **One-shot dev start** — Docker + every scaffolded service + both portals, multiplexed via `concurrently`. Ctrl+C kills all. |
+| `npm run dev:down` | Stop Docker stacks (run after Ctrl+C in `dev:up`) |
 | `npm run generate:favicons` | Regenerate favicon pack from `design-system/brand/*.svg` |
 | `npm run setup:initial:downloads` | Placeholder — real Initial Downloads runs from `portal-admin` (T22b) |
 
