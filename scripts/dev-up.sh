@@ -42,10 +42,18 @@ for portal in frontend/portal-customer frontend/portal-admin; do
   fi
 done
 
-# ---------- Step 1: Docker infra ----------
+# ---------- Step 1: verify Docker is up (we no longer start it here) ----------
 echo
-echo "==> Step 1: Docker infra"
-bash infra/local/docker-all-up.sh
+echo "==> Step 1: Docker infra check"
+if ! docker ps --filter "name=tresorai-postgres" --filter "status=running" --format '{{.Names}}' | grep -q tresorai-postgres; then
+  echo
+  echo "Docker stacks not running."
+  echo "Bring them up first:    npm run start-docker"
+  echo "Or to start everything: npm run start-docker && npm start"
+  echo
+  exit 1
+fi
+echo "  Docker stacks running."
 
 # ---------- Step 2 + 3: assemble service commands ----------
 COMMANDS=()
