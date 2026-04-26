@@ -2,19 +2,24 @@
 
 **Production-deployable** Airflow DAGs and plugins. Same code runs locally and in Cloud Composer.
 
-## Layout
+## Layout — organized by **business function**, not technical paradigm
 
 ```
 airflow/
 ├── dags/
-│   ├── initial_downloads/   ADR-0007 — reference data loads (idempotent, ADR-0014)
-│   ├── classical_ml/        XGBoost / LightGBM / Isolation Forest training + eval
-│   ├── deep_learning/       Embedding fine-tunes, TFT cash forecast, autoencoders
-│   ├── generative_ai/       Agent eval suite, prompt regression, RAG corpus refresh
-│   └── shared/              Cross-cutting helpers — manifest, storage adapter wrappers
-├── plugins/                 Custom Airflow operators / hooks / sensors
-└── requirements.txt         (when needed) extra Python deps for the Airflow image
+│   ├── tenant_onboarding/        One-shot loads at install time (demo seed, PaySim, Yelp corpus)
+│   ├── supplier_intelligence/    KYV ongoing — sanctions refresh, IBAN typosquat, country codes
+│   ├── ap_fraud_catch/           Fraud-detection model lifecycle (XGBoost / Isolation Forest train+eval+promote)
+│   ├── cash_flow_forecasting/    Forecast model lifecycle (Prophet / TFT)
+│   ├── agent_reasoning/          Agent quality eval, prompt regression, RAG corpus refresh
+│   ├── audit_compliance/         Audit log exports, retention archives
+│   ├── model_performance/        Drift detection, decision replay, model promotion
+│   └── shared/                   Cross-cutting helpers — the idempotent-load DAG factory
+├── plugins/                      Custom Airflow operators / hooks / sensors
+└── requirements.txt              (when needed) extra Python deps for the Airflow image
 ```
+
+DAGs are bucketed by what a business stakeholder would talk about — *"who runs this and when?"* — not by which Python library they happen to import. The implementation detail (XGBoost vs PyTorch vs Gemini) lives inside the DAG, not in the directory name.
 
 ## Local
 
