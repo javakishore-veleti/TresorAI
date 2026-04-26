@@ -1,7 +1,8 @@
 # ADR-0010: Visual design direction — no black/gray, treasure palette, alerts/favicons/imagery
 
-- Status: Proposed (palette pending owner sign-off; rules are committed)
+- Status: Accepted
 - Date: 2026-04-25
+- Locked by owner: 2026-04-25
 
 ## Context
 TrésorAI is positioned as a B2B fintech product, not a research demo. The visual language must read as **professional** to a CFO and as **exciting** to a portfolio visitor. The default "dashboard look" of black + gray on white is out — it makes the product feel like every other admin tool and loses the "treasure" connotation in the brand name.
@@ -63,5 +64,5 @@ TrésorAI is positioned as a B2B fintech product, not a research demo. The visua
 - (+) A single shared design-tokens config means the two portals can never drift visually.
 - (+) Headless primitives + Tailwind keep bundle size tight and theming consistent.
 - (−) More upfront design work than using Angular Material defaults. Mitigated by limiting the primitive set (alert, toast, status-pill, accordion + button + input + table) and letting Tailwind utilities handle the rest.
-- (−) Strawman palette is taste-driven. Owner sign-off required before status moves to Accepted; until then individual hex codes may shift.
+- (−) Palette is taste-driven; locked here. Future shifts require a superseding ADR.
 - (−) Sourcing imagery is its own M3 task. M0/M1 ship with palette + primitives + favicon only; rich imagery comes during polish.

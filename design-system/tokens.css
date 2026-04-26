@@ -1,0 +1,55 @@
+/*
+ * TrésorAI design tokens — CSS-variables form.
+ * Mirror of the Tailwind palette in /tailwind.config.cjs.
+ * Use these in places where Tailwind utility classes do not reach (CSS-in-JS,
+ * SVG fills, third-party widget configs).
+ *
+ * Locked by ADR-0010. Never use #000 or pure gray.
+ */
+:root {
+  /* Brand */
+  --tai-brand-emerald-700: #047857;
+  --tai-brand-emerald-500: #10B981;
+  --tai-brand-gold-500:    #D4A574;
+  --tai-brand-gold-700:    #B08A50;
+
+  /* Surfaces (no flat #FFFFFF as page background) */
+  --tai-surface-pearl:    #FAFAF6;
+  --tai-surface-cream:    #F7F1E8;
+  --tai-surface-elevated: #FFFFFF;
+
+  /* Borders + dividers (no gray) */
+  --tai-sand: #E8DCC4;
+
+  /* Text (no black) */
+  --tai-forest: #064E3B;
+  --tai-bronze: #78350F;
+  --tai-mauve:  #5B21B6;
+
+  /* Alerts + status */
+  --tai-coral:    #FB7185;
+  --tai-coral-bg: #FEF2F2;
+  --tai-mint:     #34D399;
+  --tai-amber:    #F59E0B;
+  --tai-sky:      #38BDF8;
+
+  /* Type */
+  --tai-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --tai-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Radii */
+  --tai-radius-sm: 6px;
+  --tai-radius:    10px;
+  --tai-radius-lg: 16px;
+
+  /* Elevation */
+  --tai-shadow-card:     0 1px 2px rgba(6, 78, 59, 0.04), 0 4px 12px rgba(6, 78, 59, 0.06);
+  --tai-shadow-elevated: 0 8px 24px rgba(6, 78, 59, 0.10);
+}
+
+/* Sensible defaults that prevent black/gray from leaking in. */
+html, body {
+  background: var(--tai-surface-pearl);
+  color: var(--tai-forest);
+  font-family: var(--tai-font-sans);
+}
