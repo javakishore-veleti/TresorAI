@@ -44,6 +44,24 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def _unpause_setup_dags_on_boot() -> None:
+    """Best-effort unpause of every setup_* DAG in the catalog.
+
+    Existing Airflow installs may have these DAGs paused from before
+    DAGS_ARE_PAUSED_AT_CREATION flipped to false. Running this at admin-api
+    startup keeps the catalog DAGs ready-to-trigger for the user without
+    requiring a manual UI unpause for each one.
+    """
+    from app.airflow_client import unpause_dag
+
+    for entry in _CATALOG.values():
+        try:
+            await unpause_dag(entry.airflow_dag_id)
+        except Exception:
+            pass  # truly best-effort; unpause failures don't block trigger flow
+
+
 class HealthResponse(BaseModel):
     status: str
     service: str

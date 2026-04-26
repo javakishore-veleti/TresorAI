@@ -18,9 +18,10 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    # Setup DAGs are admin-portal-triggered, not scheduled — keep new DAGs
-    # paused on first parse so a restart doesn't auto-fire historical runs.
-    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    # All setup_* DAGs use schedule=None, so they never fire automatically even
+    # when unpaused. New DAGs come up enabled in the Airflow UI — saves the
+    # user an extra unpause click before the first manual trigger.
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
     # Disable safe_mode keyword filter — our DAG factory pattern hides the
     # literal 'airflow'/'DAG' strings in shared/idempotent_dag.py, so per-DAG
     # files don't trip the discovery filter.
