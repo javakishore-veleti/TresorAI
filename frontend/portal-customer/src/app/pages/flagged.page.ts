@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { TaiAlertComponent, TaiStatusPillComponent, TaiToastService } from '../primitives';
 
 interface Flag {
@@ -12,7 +13,7 @@ interface Flag {
 @Component({
   selector: 'tai-flagged-page',
   standalone: true,
-  imports: [TaiAlertComponent, TaiStatusPillComponent],
+  imports: [DecimalPipe, TaiAlertComponent, TaiStatusPillComponent],
   template: `
     <header class="mb-6">
       <h1 class="text-3xl font-semibold text-forest tracking-tight">Flagged transactions</h1>

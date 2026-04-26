@@ -1,10 +1,10 @@
+/* @import rules MUST come before @tailwind (which expands to CSS rules). */
+@import "../../../design-system/tokens.css";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import "../../../design-system/tokens.css";
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 html, body {
   height: 100%;
