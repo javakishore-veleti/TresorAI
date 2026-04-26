@@ -42,7 +42,7 @@
 
 ### Definitions
 
-> **SMB** *(Small and Medium-sized Business)* — common operating definition: **10–250 employees, $1M–$50M annual revenue**. Synonyms: SME (Small and Medium Enterprise, the EU/OECD term), mid-market when on the upper end. SMBs are too big for shoebox accounting, too small to afford enterprise treasury platforms (Kyriba, FIS Quantum, SAP Treasury). This is the **missing middle** of fintech — and the segment TrésorAI is built for.
+> **SMB** *(Small and Medium-sized Business)* — common operating definition: **10–250 employees, $1M–$50M annual revenue**. Synonyms: SME (Small and Medium Enterprise, the EU/OECD term), mid-market when on the upper end. SMBs are too big for shoebox accounting, too small to afford enterprise treasury platforms. This is the **missing middle** of fintech — and the segment TrésorAI is built for.
 >
 > **Business domain** — TrésorAI sits at the intersection of three classical financial sub-domains:
 >
