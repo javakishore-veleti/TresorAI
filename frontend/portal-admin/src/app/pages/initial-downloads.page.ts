@@ -127,7 +127,7 @@ const PILL_BY_STATUS: Record<string, 'released' | 'pending' | 'held' | 'flagged'
                     </div>
                     <div class="h-2 rounded-full bg-surface-pearl overflow-hidden border border-sand">
                       <div class="h-full bg-brand-emerald-500 transition-all duration-300"
-                           [style.width.%]="d.last_run_progress ?? 0"></div>
+                           [style.width.%]="d.last_run_progress"></div>
                     </div>
                   </div>
                 } @else if (d.last_run_at) {
