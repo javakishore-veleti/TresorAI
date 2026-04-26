@@ -77,6 +77,10 @@ class DatasetCatalogEntry(BaseModel):
     last_run_at: str | None
     last_run_id: str | None = None
     last_run_progress: int | None = None  # 0-100, only when running
+    # Storage locations — resolved per ADR-0014 + ADR-0015 from env vars
+    local_path: str | None = None      # $HOME/runtime_data/tresorai/datasets/<key>/
+    source_provider: str | None = None # gcs | s3 | azure
+    source_uri: str | None = None      # gs://... or s3://... or https://....blob...
 
 
 class RunRecord(BaseModel):
@@ -222,9 +226,43 @@ async def _simulate_run(dataset_key: str, run_id: str, forced: bool) -> None:
     record.rows_loaded = rows
 
 
+def _resolve_storage_paths(dataset_key: str) -> dict[str, str | None]:
+    """Compute local cache + cloud source URI from env (ADR-0014 + ADR-0015)."""
+    home = os.path.expanduser("~")
+    cache_root = os.environ.get(
+        "TAI_DATASETS_ROOT",
+        os.path.join(home, "runtime_data", "tresorai", "datasets"),
+    )
+    local_path = os.path.join(cache_root, dataset_key) + "/"
+
+    provider = os.environ.get("TAI_STORAGE_PROVIDER", "gcs").lower()
+    bucket = os.environ.get("TAI_STORAGE_BUCKET", "tresorai-datasets")
+    prefix = os.environ.get("TAI_STORAGE_PREFIX", "datasets/")
+    if not prefix.endswith("/"):
+        prefix += "/"
+
+    if provider == "gcs":
+        source_uri = f"gs://{bucket}/{prefix}{dataset_key}/"
+    elif provider == "s3":
+        source_uri = f"s3://{bucket}/{prefix}{dataset_key}/"
+    elif provider == "azure":
+        account = os.environ.get("TAI_AZURE_ACCOUNT", "tresorai")
+        container = os.environ.get("TAI_AZURE_CONTAINER", "datasets")
+        source_uri = f"https://{account}.blob.core.windows.net/{container}/{prefix}{dataset_key}/"
+    else:
+        source_uri = None
+
+    return {"local_path": local_path, "source_provider": provider, "source_uri": source_uri}
+
+
+def _enrich(entry: DatasetCatalogEntry) -> DatasetCatalogEntry:
+    paths = _resolve_storage_paths(entry.key)
+    return entry.model_copy(update=paths)
+
+
 @app.get("/api/admin/initial-downloads/datasets", response_model=list[DatasetCatalogEntry])
 def list_datasets() -> list[DatasetCatalogEntry]:
-    return list(_CATALOG.values())
+    return [_enrich(e) for e in _CATALOG.values()]
 
 
 @app.get("/api/admin/initial-downloads/{dataset_key}", response_model=DatasetCatalogEntry)
@@ -232,7 +270,7 @@ def get_dataset(dataset_key: str) -> DatasetCatalogEntry:
     entry = _CATALOG.get(dataset_key)
     if entry is None:
         raise HTTPException(status_code=404, detail=f"Unknown dataset_key: {dataset_key}")
-    return entry
+    return _enrich(entry)
 
 
 @app.get("/api/admin/initial-downloads/{dataset_key}/runs", response_model=list[RunRecord])

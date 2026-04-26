@@ -26,6 +26,9 @@ interface DatasetEntry {
   last_run_at: string | null;
   last_run_id: string | null;
   last_run_progress: number | null;
+  local_path: string | null;
+  source_provider: string | null;
+  source_uri: string | null;
 }
 
 interface RunRecord {
@@ -93,14 +96,43 @@ const PILL_BY_STATUS: Record<string, 'released' | 'pending' | 'held' | 'flagged'
           [initialOpen]="d.current_status === 'running' || d.current_status === 'never_loaded'"
         >
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left: source / target -->
+            <!-- Left: storage locations + DAG -->
             <div class="space-y-3">
               <div>
                 <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">DAG ID</span>
                 <code class="text-sm font-mono text-forest">{{ d.airflow_dag_id }}</code>
               </div>
+              @if (d.source_uri) {
+                <div>
+                  <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">
+                    Source · cloud storage
+                    @if (d.source_provider) {
+                      <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-tai-sm bg-mauve text-surface-pearl text-[10px] font-mono uppercase tracking-wide">
+                        {{ d.source_provider }}
+                      </span>
+                    }
+                  </span>
+                  <code class="text-sm font-mono text-forest break-all">{{ d.source_uri }}</code>
+                </div>
+              }
+              @if (d.local_path) {
+                <div>
+                  <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">
+                    Local cache
+                    <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-tai-sm bg-surface-cream text-bronze text-[10px] font-mono uppercase tracking-wide border border-sand">
+                      laptop
+                    </span>
+                  </span>
+                  <code class="text-sm font-mono text-forest break-all">{{ d.local_path }}</code>
+                </div>
+              }
               <div>
-                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">Target table</span>
+                <span class="block text-xs uppercase tracking-wide text-bronze font-semibold mb-1">
+                  Target · database
+                  <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-tai-sm bg-surface-cream text-bronze text-[10px] font-mono uppercase tracking-wide border border-sand">
+                    postgres
+                  </span>
+                </span>
                 <code class="text-sm font-mono text-forest">{{ d.target_table }}</code>
               </div>
               <div>
